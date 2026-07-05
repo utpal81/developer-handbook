@@ -24,9 +24,9 @@
 
 # 1 - Linux Filesystem & Navigation
 
-## Learning Objectives
+##  Objectives
 
-After completing this lesson, I should be able to:
+After completing this section, I should be able to:
 
 - Explain the Linux filesystem hierarchy.
 - Navigate directories using the terminal.
@@ -341,9 +341,9 @@ cd /home/toutp/projects
 
 # 2 - Working with Files & Directories
 
-## Learning Objectives
+## Objectives
 
-After completing this lesson, I should be able to:
+After completing this section, I should be able to:
 
 - Create files and directories.
 - Create nested directory structures.
@@ -689,9 +689,9 @@ Tasks
 ---
 # 3 - Viewing & Searching Files
 
-## Learning Objectives
+## Objectives
 
-After completing this lesson, I should be able to:
+After completing this section, I should be able to:
 
 - View the contents of files.
 - Read large files efficiently.
@@ -1083,4 +1083,457 @@ which python3
 - `which` locates executable programs.
 
 ---
+---
+---
+---
+---
+# 4 - File Permissions & Ownership
+
+## Objectives
+
+After completing this section, I should be able to:
+
+- Understand Linux file permissions.
+- Read the permission string shown by `ls -l`.
+- Understand users, groups, and others.
+- Change file permissions using `chmod`.
+- Change file ownership using `chown`.
+- Understand when and why to use `sudo`.
+
+---
+
+# I. Why File Permissions Matter
+
+Linux is a multi-user operating system.
+
+Every file and directory belongs to a user and has permissions that determine:
+
+- Who can read it
+- Who can modify it
+- Who can execute it
+
+Example
+
+```text
+-rwxr-xr--
+```
+
+This single line tells Linux exactly who can do what with the file.
+
+---
+
+# II. Viewing Permissions
+
+Use
+
+```bash
+ls -l
+```
+
+Example
+
+```text
+-rwxr-xr-- 1 toutp toutp 245 Jul 5 app.py
+```
+
+Let's decode it.
+
+```
+-rwxr-xr--
+│││ │ │
+│││ │ └── Others
+│││ └──── Group
+│└────── Owner
+└──────── File Type
+```
+
+---
+
+# III. File Types
+
+The first character indicates the type.
+
+| Symbol | Meaning |
+|----------|---------|
+| `-` | Regular file |
+| `d` | Directory |
+| `l` | Symbolic link |
+
+Examples
+
+```text
+-rw-r--r--
+```
+
+Regular file
+
+```text
+drwxr-xr-x
+```
+
+Directory
+
+---
+
+# IV. Permission Symbols
+
+There are three permissions.
+
+| Symbol | Meaning |
+|----------|---------|
+| `r` | Read |
+| `w` | Write |
+| `x` | Execute |
+
+---
+
+# V. Owner, Group, Others
+
+Permissions are divided into three categories.
+
+```
+-rwxr-xr--
+```
+
+Split into groups.
+
+```
+rwx  r-x  r--
+│     │     │
+│     │     └── Others
+│     └──────── Group
+└────────────── Owner
+```
+
+Owner
+
+Usually you.
+
+Group
+
+People belonging to the same group.
+
+Others
+
+Everyone else.
+
+---
+
+# VI. Meaning of Each Permission
+
+## Read (r)
+
+Can open and read the file.
+
+---
+
+## Write (w)
+
+Can modify or delete the file.
+
+---
+
+## Execute (x)
+
+Can run the file as a program.
+
+Example
+
+```bash
+./script.sh
+```
+
+---
+
+# VII. Numeric Permissions
+
+Linux also represents permissions using numbers.
+
+| Permission | Value |
+|------------|------|
+| Read | 4 |
+| Write | 2 |
+| Execute | 1 |
+
+Add them together.
+
+| Permission | Number |
+|------------|--------|
+| rwx | 7 |
+| rw- | 6 |
+| r-x | 5 |
+| r-- | 4 |
+
+---
+
+## Example
+
+```
+755
+```
+
+Means
+
+```
+Owner : rwx
+
+Group : r-x
+
+Others: r-x
+```
+
+---
+
+```
+644
+```
+
+Means
+
+```
+Owner : rw-
+
+Group : r--
+
+Others: r--
+```
+
+---
+
+# VIII. chmod
+
+## Purpose
+
+Change file permissions.
+
+## Syntax
+
+```bash
+chmod permissions filename
+```
+
+Examples
+
+```bash
+chmod 755 script.sh
+```
+
+```bash
+chmod 644 notes.txt
+```
+
+---
+
+# IX. Symbolic chmod
+
+Instead of numbers, you can use letters.
+
+Add execute permission
+
+```bash
+chmod +x script.sh
+```
+
+Remove execute permission
+
+```bash
+chmod -x script.sh
+```
+
+Owner gets write permission
+
+```bash
+chmod u+w notes.txt
+```
+
+Group loses write permission
+
+```bash
+chmod g-w notes.txt
+```
+
+Others get read permission
+
+```bash
+chmod o+r notes.txt
+```
+
+---
+
+# X. chown
+
+## Purpose
+
+Change file ownership.
+
+Syntax
+
+```bash
+sudo chown owner filename
+```
+
+Example
+
+```bash
+sudo chown toutp app.py
+```
+
+Owner and group
+
+```bash
+sudo chown toutp:developers app.py
+```
+
+---
+
+# XI. sudo
+
+## Purpose
+
+Run a command with administrator privileges.
+
+Example
+
+```bash
+sudo apt update
+```
+
+You'll be asked for your password.
+
+---
+
+# XII. Common Permission Values
+
+| Number | Meaning |
+|----------|---------|
+| 777 | Everyone has full access |
+| 755 | Owner full access, others read & execute |
+| 700 | Only owner has access |
+| 644 | Owner can edit, others can read |
+| 600 | Only owner can read/write |
+
+---
+
+# XIII. Best Practices
+
+✅ Use
+
+```
+644
+```
+
+for normal files.
+
+---
+
+Use
+
+```
+755
+```
+
+for executable scripts.
+
+---
+
+Avoid
+
+```
+777
+```
+
+unless absolutely necessary.
+
+---
+
+Use
+
+```bash
+chmod +x
+```
+
+for shell scripts.
+
+---
+
+Use
+
+```bash
+ls -l
+```
+
+to verify permissions.
+
+---
+
+# Commands Learned
+
+| Command | Purpose |
+|----------|---------|
+| `ls -l` | View permissions |
+| `chmod` | Change permissions |
+| `chmod +x` | Make executable |
+| `chmod 755` | Set numeric permissions |
+| `chown` | Change owner |
+| `sudo` | Execute as administrator |
+
+---
+
+# Practice Lab
+
+Create a file.
+
+```bash
+touch script.sh
+```
+
+View permissions.
+
+```bash
+ls -l
+```
+
+Make it executable.
+
+```bash
+chmod +x script.sh
+```
+
+Verify.
+
+```bash
+ls -l
+```
+
+Remove execute permission.
+
+```bash
+chmod -x script.sh
+```
+
+Verify again.
+
+```bash
+ls -l
+```
+
+---
+
+# Summary
+
+- Linux protects files using permissions.
+- Permissions are assigned to the owner, group, and others.
+- The three permissions are read (`r`), write (`w`), and execute (`x`).
+- `chmod` changes permissions.
+- `chown` changes ownership.
+- `sudo` runs commands with administrator privileges.
+- `755` and `644` are the most commonly used permission sets.
+
+---
+---
+---
+---
+---
+
+
 
