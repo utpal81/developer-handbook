@@ -294,7 +294,7 @@ cd /home/toutp/projects
 
 ---
 
-# IX. Best Practices
+# Best Practices
 
 - Use `pwd` before deleting or moving files.
 - Prefer `~/projects` for development projects.
@@ -304,7 +304,7 @@ cd /home/toutp/projects
 
 ---
 
-# X. Commands Learned
+# Commands Learned
 
 | Command | Purpose |
 |----------|---------|
@@ -619,7 +619,7 @@ main.py
 
 ---
 
-# IX. Best Practices
+# Best Practices
 
 - Check your current directory using `pwd`.
 - Use meaningful directory names.
@@ -629,7 +629,7 @@ main.py
 
 ---
 
-# X. Commands Learned
+# Commands Learned
 
 | Command | Purpose |
 |----------|---------|
@@ -970,7 +970,7 @@ Useful for checking which version of a program is being used.
 
 ---
 
-# VIII. Command Comparison
+# Command Comparison
 
 | Command | Purpose |
 |----------|---------|
@@ -984,7 +984,7 @@ Useful for checking which version of a program is being used.
 
 ---
 
-# IX. Best Practices
+# Best Practices
 
 - Use `cat` for small files.
 - Use `less` for large files.
@@ -1414,7 +1414,7 @@ You'll be asked for your password.
 
 ---
 
-# XIII. Best Practices
+#  Best Practices
 
 ✅ Use
 
@@ -1534,6 +1534,500 @@ ls -l
 ---
 ---
 ---
+
+# 5 - Processes & Jobs
+
+## Objectives
+
+After completing this lesson, I should be able to:
+
+- Understand what a process is.
+- Understand what a job is.
+- View running processes.
+- Monitor system resources.
+- Stop processes safely.
+- Run programs in the background.
+- Suspend and resume programs.
+- Find process IDs (PIDs).
+
+---
+
+# I. What is a Process?
+
+A **process** is simply a **running program**.
+
+Examples
+
+- VS Code
+- Google Chrome
+- Python
+- FastAPI
+- React Development Server
+- Docker
+
+Every running application is a process.
+
+Example
+
+```bash
+python app.py
+```
+
+When this command starts, Linux creates a new process.
+
+---
+
+# II. What is a Job?
+
+A **job** is a process that is managed by the current shell (terminal).
+
+Example
+
+```bash
+python app.py
+```
+
+Press
+
+```
+Ctrl + Z
+```
+
+The process is suspended.
+
+Now run
+
+```bash
+jobs
+```
+
+Output
+
+```
+[1]+ Stopped python app.py
+```
+
+This suspended process is now called a **job**.
+
+---
+
+# Process vs Job
+
+| Process | Job |
+|----------|-----|
+| Managed by the operating system | Managed by the shell |
+| Exists whether terminal is open or not | Exists only in the current shell |
+| Identified by PID | Identified by Job Number |
+
+---
+
+# III. Process ID (PID)
+
+Every process has a unique Process ID.
+
+Example
+
+```
+PID
+
+3154
+
+9201
+
+10452
+```
+
+Linux uses the PID to identify running processes.
+
+---
+
+# IV. ps
+
+## Purpose
+
+Display running processes.
+
+## Syntax
+
+```bash
+ps
+```
+
+Example
+
+```bash
+ps
+```
+
+Typical Output
+
+```
+PID TTY          TIME CMD
+3456 pts/0    00:00:00 bash
+4123 pts/0    00:00:00 python
+```
+
+---
+
+## More Useful
+
+```bash
+ps aux
+```
+
+Shows all running processes.
+
+---
+
+# V. top
+
+## Purpose
+
+Real-time process monitor.
+
+Run
+
+```bash
+top
+```
+
+Shows
+
+- CPU usage
+- Memory usage
+- Running processes
+- Load average
+
+Quit using
+
+```
+q
+```
+
+---
+
+# VI. htop
+
+A more user-friendly version of `top`.
+
+Install
+
+```bash
+sudo apt install htop
+```
+
+Run
+
+```bash
+htop
+```
+
+Exit
+
+```
+F10
+```
+
+---
+
+# VII. pgrep
+
+Find the PID of a running process.
+
+Example
+
+```bash
+pgrep python
+```
+
+Output
+
+```
+5312
+```
+
+---
+
+# VIII. kill
+
+Stop a running process.
+
+Syntax
+
+```bash
+kill PID
+```
+
+Example
+
+```bash
+kill 5312
+```
+
+Linux sends a signal asking the process to terminate.
+
+---
+
+# IX. kill -9
+
+Forcefully terminate a process.
+
+Example
+
+```bash
+kill -9 5312
+```
+
+Use only if the process refuses to stop.
+
+---
+
+# X. killall
+
+Stop every process with the same name.
+
+Example
+
+```bash
+killall python
+```
+
+---
+
+# XI. Running Programs in the Background
+
+Example
+
+```bash
+python app.py &
+```
+
+The ampersand (`&`) starts the process in the background.
+
+You immediately get your terminal back.
+
+---
+
+# XII. jobs
+
+View background and suspended jobs.
+
+```bash
+jobs
+```
+
+Example
+
+```
+[1]+ Running python app.py &
+```
+
+---
+
+# XIII. Ctrl + Z
+
+Suspend the current process.
+
+Example
+
+```bash
+python app.py
+```
+
+Press
+
+```
+Ctrl + Z
+```
+
+Output
+
+```
+Stopped
+```
+
+The process is paused, not terminated.
+
+---
+
+# XIV. bg
+
+Resume a suspended job in the background.
+
+```bash
+bg
+```
+
+---
+
+# XV. fg
+
+Bring a background job back to the foreground.
+
+```bash
+fg
+```
+
+---
+
+# XVI. Ctrl + C
+
+Terminate the running foreground process.
+
+Example
+
+```bash
+python app.py
+```
+
+Press
+
+```
+Ctrl + C
+```
+
+The process exits.
+
+This is the most common way to stop a program.
+
+---
+
+# Commands Learned
+
+| Command | Purpose |
+|----------|---------|
+| `ps` | View running processes |
+| `ps aux` | View all processes |
+| `top` | Monitor processes |
+| `htop` | Interactive process viewer |
+| `pgrep` | Find process ID |
+| `kill` | Stop process |
+| `kill -9` | Force stop process |
+| `killall` | Stop all matching processes |
+| `jobs` | View shell jobs |
+| `bg` | Resume job in background |
+| `fg` | Bring job to foreground |
+
+---
+
+# Best Practices
+
+- Use `Ctrl + C` to stop a program normally.
+- Use `kill` only if necessary.
+- Use `kill -9` only as a last resort.
+- Use `htop` when troubleshooting performance.
+- Learn to use `jobs`, `bg`, and `fg` for multitasking in the terminal.
+
+---
+
+# Practice Lab
+
+## Exercise 1
+
+Run
+
+```bash
+sleep 100
+```
+
+Press
+
+```
+Ctrl + Z
+```
+
+View jobs
+
+```bash
+jobs
+```
+
+Resume
+
+```bash
+bg
+```
+
+Bring back
+
+```bash
+fg
+```
+
+Terminate
+
+```
+Ctrl + C
+```
+
+---
+
+## Exercise 2
+
+Run
+
+```bash
+sleep 300 &
+```
+
+Find it
+
+```bash
+jobs
+```
+
+Find its PID
+
+```bash
+pgrep sleep
+```
+
+Terminate it
+
+```bash
+kill PID
+```
+
+---
+
+## Exercise 3
+
+Open another terminal.
+
+Run
+
+```bash
+top
+```
+
+Observe
+
+- CPU usage
+- Memory usage
+- Running processes
+
+Exit
+
+```
+q
+```
+
+---
+
+# Summary
+
+- Every running program is a process.
+- Every process has a PID.
+- Jobs are processes managed by the current shell.
+- `Ctrl + C` terminates a program.
+- `Ctrl + Z` suspends a program.
+- `bg` resumes a job in the background.
+- `fg` brings it back to the foreground.
+- `kill` stops a process.
+- `top` monitors system activity.
+
+---
+
 
 
 
