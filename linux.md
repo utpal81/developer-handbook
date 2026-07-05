@@ -36,7 +36,7 @@ After completing this lesson, I should be able to:
 
 ---
 
-# 1. Linux Filesystem
+# I. Linux Filesystem
 
 Unlike Windows, Linux uses a **single hierarchical filesystem**.
 
@@ -82,7 +82,7 @@ E:\Games
 
 ---
 
-# 2. Important Directories
+# II. Important Directories
 
 | Directory | Purpose |
 |------------|---------|
@@ -98,7 +98,7 @@ E:\Games
 
 ---
 
-# 3. Special Symbols
+# III. Special Symbols
 
 | Symbol | Meaning |
 |---------|---------|
@@ -123,7 +123,7 @@ cd /
 
 ---
 
-# 4. WSL Filesystem
+# IV. WSL Filesystem
 
 Windows drives are mounted inside WSL.
 
@@ -156,7 +156,7 @@ Reason:
 
 ---
 
-# 5. pwd
+# V. pwd
 
 ## Purpose
 
@@ -186,7 +186,7 @@ Use this command whenever you are unsure of your current location.
 
 ---
 
-# 6. ls
+# VI. ls
 
 ## Purpose
 
@@ -228,7 +228,7 @@ One of the most frequently used Linux commands.
 
 ---
 
-# 7. cd
+# VII. cd
 
 ## Purpose
 
@@ -268,7 +268,7 @@ cd ~/projects
 
 ---
 
-# 8. Absolute vs Relative Paths
+# VIII. Absolute vs Relative Paths
 
 ## Relative Path
 
@@ -294,7 +294,7 @@ cd /home/toutp/projects
 
 ---
 
-# 9. Best Practices
+# IX. Best Practices
 
 - Use `pwd` before deleting or moving files.
 - Prefer `~/projects` for development projects.
@@ -304,7 +304,7 @@ cd /home/toutp/projects
 
 ---
 
-# 10. Commands Learned
+# X. Commands Learned
 
 | Command | Purpose |
 |----------|---------|
@@ -331,8 +331,360 @@ cd /home/toutp/projects
 - I should create new development projects inside `~/projects`.
 - `pwd` shows my current location.
 - `ls` lists files and directories.
-- `cd` changes the current directory.
+- `cd` changes the current directory.  
+
+---    
+---
+---
+---
+---
+
+# 2 - Working with Files & Directories
+
+## Learning Objectives
+
+After completing this lesson, I should be able to:
+
+- Create files and directories.
+- Create nested directory structures.
+- Copy files and directories.
+- Move and rename files.
+- Delete files and directories safely.
+- Understand the difference between copying and moving.
 
 ---
+
+# I. mkdir
+
+## Purpose
+
+Create one or more directories.
+
+## Syntax
+
+```bash
+mkdir directory_name
+```
+
+## Examples
+
+Create a single directory
+
+```bash
+mkdir projects
+```
+
+Create multiple directories
+
+```bash
+mkdir ai react fastapi practice
+```
+
+Create nested directories
+
+```bash
+mkdir -p ~/projects/ai/rag-chatbot
+```
+
+## Notes
+
+The `-p` option creates parent directories automatically if they do not already exist.
+
+---
+
+# II. touch
+
+## Purpose
+
+Create an empty file.
+
+## Syntax
+
+```bash
+touch filename
+```
+
+## Examples
+
+Create a Python file
+
+```bash
+touch app.py
+```
+
+Create multiple files
+
+```bash
+touch README.md requirements.txt main.py
+```
+
+## Notes
+
+If the file already exists, `touch` updates its modification timestamp.
+
+---
+
+# III. cp
+
+## Purpose
+
+Copy files or directories.
+
+## Syntax
+
+Copy a file
+
+```bash
+cp source destination
+```
+
+Copy a directory
+
+```bash
+cp -r source_directory destination_directory
+```
+
+## Examples
+
+Copy a file
+
+```bash
+cp app.py backup.py
+```
+
+Copy a directory
+
+```bash
+cp -r ai ai_backup
+```
+
+## Notes
+
+Use the `-r` option when copying directories.
+
+---
+
+# IV. mv
+
+## Purpose
+
+Move or rename files and directories.
+
+## Syntax
+
+```bash
+mv source destination
+```
+
+## Examples
+
+Rename a file
+
+```bash
+mv app.py main.py
+```
+
+Move a file into another directory
+
+```bash
+mv main.py src/
+```
+
+Rename a directory
+
+```bash
+mv old_project new_project
+```
+
+## Notes
+
+`mv` is used for both moving and renaming.
+
+---
+
+# V. rm
+
+## Purpose
+
+Delete files.
+
+## Syntax
+
+```bash
+rm filename
+```
+
+## Example
+
+```bash
+rm notes.txt
+```
+
+## Notes
+
+Deleted files are **not** moved to the Recycle Bin.
+
+Be careful.
+
+---
+
+# VI. rmdir
+
+## Purpose
+
+Delete an empty directory.
+
+## Syntax
+
+```bash
+rmdir directory_name
+```
+
+## Example
+
+```bash
+rmdir practice
+```
+
+## Notes
+
+The directory must be empty.
+
+---
+
+# VII. rm -r
+
+## Purpose
+
+Delete a directory and everything inside it.
+
+## Syntax
+
+```bash
+rm -r directory_name
+```
+
+## Example
+
+```bash
+rm -r practice
+```
+
+## Notes
+
+⚠️ This permanently deletes the directory and all of its contents.
+
+Always verify your current directory using:
+
+```bash
+pwd
+```
+
+before using this command.
+
+---
+
+# VIII. Difference Between cp and mv
+
+| cp | mv |
+|----|----|
+| Copies files | Moves files |
+| Original remains | Original is removed |
+| Creates duplicate | Transfers the original |
+
+Example
+
+```bash
+cp app.py backup.py
+```
+
+Results
+
+```
+app.py
+backup.py
+```
+
+Example
+
+```bash
+mv app.py main.py
+```
+
+Results
+
+```
+main.py
+```
+
+---
+
+# IX. Best Practices
+
+- Check your current directory using `pwd`.
+- Use meaningful directory names.
+- Keep projects inside `~/projects`.
+- Be extremely careful with `rm -r`.
+- Use `cp` before making major changes to important files.
+
+---
+
+# X. Commands Learned
+
+| Command | Purpose |
+|----------|---------|
+| `mkdir` | Create directory |
+| `mkdir -p` | Create nested directories |
+| `touch` | Create empty file |
+| `cp` | Copy files |
+| `cp -r` | Copy directories |
+| `mv` | Move or rename |
+| `rm` | Delete files |
+| `rmdir` | Delete empty directory |
+| `rm -r` | Delete directory recursively |
+
+---
+
+# Practice Lab
+
+Create the following structure using only the terminal.
+
+```
+practice/
+└── linux/
+    ├── README.md
+    ├── notes.txt
+    ├── commands.txt
+    ├── practice.py
+    └── examples/
+```
+
+Tasks
+
+1. Create all directories.
+2. Create all files.
+3. Rename `commands.txt` to `linux_commands.txt`.
+4. Copy `practice.py` to `practice_backup.py`.
+5. Move `practice_backup.py` into `examples/`.
+6. Display the final directory structure.
+
+---
+
+# Summary
+
+- `mkdir` creates directories.
+- `mkdir -p` creates nested directories.
+- `touch` creates empty files.
+- `cp` copies files or directories.
+- `mv` moves or renames files and directories.
+- `rm` deletes files.
+- `rmdir` deletes empty directories.
+- `rm -r` deletes directories recursively.
+- Always verify your current location using `pwd`.
+
+---
+
+
+
 
 
