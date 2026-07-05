@@ -683,8 +683,404 @@ Tasks
 - Always verify your current location using `pwd`.
 
 ---
+---
+---
+---
+---
+# 3 - Viewing & Searching Files
 
+## Learning Objectives
 
+After completing this lesson, I should be able to:
 
+- View the contents of files.
+- Read large files efficiently.
+- Display specific lines from a file.
+- Search for files.
+- Search for text inside files.
+- Locate installed commands.
 
+---
+
+# I. cat
+
+## Purpose
+
+Display the contents of a file.
+
+## Syntax
+
+```bash
+cat filename
+```
+
+## Example
+
+```bash
+cat README.md
+```
+
+## Create and Display a File
+
+```bash
+echo "Hello Linux" > hello.txt
+cat hello.txt
+```
+
+Output
+
+```text
+Hello Linux
+```
+
+## Notes
+
+Best suited for small files.
+
+---
+
+# II. less
+
+## Purpose
+
+View large files one page at a time.
+
+## Syntax
+
+```bash
+less filename
+```
+
+## Example
+
+```bash
+less linux.md
+```
+
+## Navigation
+
+| Key | Action |
+|------|--------|
+| Space | Next page |
+| b | Previous page |
+| ↑ ↓ | Scroll |
+| /text | Search |
+| n | Next match |
+| q | Quit |
+
+## Notes
+
+Preferred over `cat` for large files.
+
+---
+
+# III. head
+
+## Purpose
+
+Display the beginning of a file.
+
+## Syntax
+
+```bash
+head filename
+```
+
+## Example
+
+```bash
+head linux.md
+```
+
+Display first 20 lines
+
+```bash
+head -20 linux.md
+```
+
+---
+
+# IV. tail
+
+## Purpose
+
+Display the end of a file.
+
+## Syntax
+
+```bash
+tail filename
+```
+
+## Example
+
+```bash
+tail linux.md
+```
+
+Display last 20 lines
+
+```bash
+tail -20 linux.md
+```
+
+### Follow a growing file
+
+```bash
+tail -f logfile.log
+```
+
+Press
+
+```
+Ctrl + C
+```
+
+to stop.
+
+## Notes
+
+Very useful for viewing application logs.
+
+---
+
+# V. find
+
+## Purpose
+
+Search for files and directories.
+
+## Syntax
+
+```bash
+find location criteria
+```
+
+## Examples
+
+Find Python files
+
+```bash
+find . -name "*.py"
+```
+
+Find README files
+
+```bash
+find . -name "README.md"
+```
+
+Find directories
+
+```bash
+find . -type d
+```
+
+Find files
+
+```bash
+find . -type f
+```
+
+## Notes
+
+`.` means the current directory.
+
+---
+
+# VI. grep
+
+## Purpose
+
+Search for text inside files.
+
+## Syntax
+
+```bash
+grep "text" filename
+```
+
+## Examples
+
+Search for "Linux"
+
+```bash
+grep "Linux" linux.md
+```
+
+Search recursively
+
+```bash
+grep -r "FastAPI" .
+```
+
+Ignore case
+
+```bash
+grep -i "linux" linux.md
+```
+
+Display line numbers
+
+```bash
+grep -n "Lesson" linux.md
+```
+
+## Notes
+
+One of the most useful Linux commands for developers.
+
+---
+
+# VII. which
+
+## Purpose
+
+Locate an executable command.
+
+## Syntax
+
+```bash
+which command
+```
+
+## Examples
+
+```bash
+which python3
+```
+
+```bash
+which git
+```
+
+```bash
+which node
+```
+
+Output
+
+```text
+/usr/bin/python3
+```
+
+## Notes
+
+Useful for checking which version of a program is being used.
+
+---
+
+# VIII. Command Comparison
+
+| Command | Purpose |
+|----------|---------|
+| `cat` | Display entire file |
+| `less` | Read large files |
+| `head` | Display beginning of file |
+| `tail` | Display end of file |
+| `find` | Search for files |
+| `grep` | Search inside files |
+| `which` | Locate installed command |
+
+---
+
+# IX. Best Practices
+
+- Use `cat` for small files.
+- Use `less` for large files.
+- Use `head` to inspect the beginning of a file.
+- Use `tail -f` when monitoring log files.
+- Use `find` instead of manually searching directories.
+- Use `grep` to search code and logs efficiently.
+- Use `which` when multiple versions of software might be installed.
+
+---
+
+# Practice Lab
+
+Go to your practice directory.
+
+```bash
+cd ~/projects/practice/linux
+```
+
+### Step 1
+
+Add text to a file.
+
+```bash
+echo "Linux is awesome." > notes.txt
+echo "FastAPI is a Python framework." >> notes.txt
+echo "React is a frontend library." >> notes.txt
+```
+
+### Step 2
+
+View the file.
+
+```bash
+cat notes.txt
+```
+
+### Step 3
+
+Display the first two lines.
+
+```bash
+head -2 notes.txt
+```
+
+### Step 4
+
+Display the last line.
+
+```bash
+tail -1 notes.txt
+```
+
+### Step 5
+
+Search for the word "Python".
+
+```bash
+grep "Python" notes.txt
+```
+
+### Step 6
+
+Search all Python files.
+
+```bash
+find . -name "*.py"
+```
+
+### Step 7
+
+Find where Git is installed.
+
+```bash
+which git
+```
+
+### Step 8
+
+Find where Python is installed.
+
+```bash
+which python3
+```
+
+---
+
+# Summary
+
+- `cat` displays an entire file.
+- `less` is used to read large files.
+- `head` displays the beginning of a file.
+- `tail` displays the end of a file.
+- `find` searches for files and directories.
+- `grep` searches for text within files.
+- `which` locates executable programs.
+
+---
 
