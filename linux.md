@@ -2602,7 +2602,10 @@ Output
 
 # VIII. Creating Variables
 
-Temporary variable
+Temporary variable --> Also called **Shell variable**
+
+- Exists only in the current shell.  
+- Child processes (programs started from the shell) do not automatically receive it.
 
 ```bash
 name="Utpal"
@@ -2626,7 +2629,10 @@ This variable disappears when the terminal closes.
 
 # IX. export
 
-Create an environment variable.
+Create an **environment variable**.
+
+- Exists in the current shell.  
+- Is exported to child processes.
 
 ```bash
 export PROJECT="ResearchMind AI"
@@ -2667,6 +2673,8 @@ Reload
 ```bash
 source ~/.bashrc
 ```
+
+Even after closing and reopening the terminal, it will still be available because .bashrc is executed whenever a new interactive Bash session starts.
 
 ---
 
