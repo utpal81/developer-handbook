@@ -2393,6 +2393,512 @@ curl --version
 - `tree` is useful for visualizing directory structures.
 
 ---
+---
+---
+---
+---
+# Lesson 7 - Environment Variables & The Shell
+
+## Learning Objectives
+
+After completing this lesson, I should be able to:
+
+- Understand what environment variables are.
+- View existing environment variables.
+- Create temporary environment variables.
+- Create permanent environment variables.
+- Understand the PATH variable.
+- Understand HOME, USER, SHELL, and PWD.
+- Create aliases.
+- Understand the purpose of `.bashrc`.
+
+---
+
+# I. What is an Environment Variable?
+
+An environment variable is a **named value** stored by the shell.
+
+Programs use these variables to determine how they should behave.
+
+Example
+
+```
+HOME=/home/toutp
+```
+
+When you type
+
+```bash
+cd ~
+```
+
+Linux actually uses
+
+```
+$HOME
+```
+
+---
+
+# II. View an Environment Variable
+
+Syntax
+
+```bash
+echo $VARIABLE
+```
+
+Examples
+
+```bash
+echo $HOME
+```
+
+Output
+
+```
+/home/toutp
+```
+
+---
+
+```bash
+echo $USER
+```
+
+Output
+
+```
+toutp
+```
+
+---
+
+```bash
+echo $SHELL
+```
+
+Output
+
+```
+/bin/bash
+```
+
+---
+
+```bash
+echo $PWD
+```
+
+Output
+
+```
+/home/toutp/projects
+```
+
+---
+
+# III. Common Environment Variables
+
+| Variable | Purpose |
+|-----------|---------|
+| HOME | Home directory |
+| USER | Current user |
+| SHELL | Current shell |
+| PATH | Executable search path |
+| PWD | Current directory |
+| HOSTNAME | Computer name |
+
+---
+
+# IV. env
+
+Displays all environment variables.
+
+```bash
+env
+```
+
+---
+
+# V. printenv
+
+Another command for viewing environment variables.
+
+```bash
+printenv
+```
+
+Specific variable
+
+```bash
+printenv HOME
+```
+
+---
+
+# VI. PATH
+
+One of the most important environment variables.
+
+View it
+
+```bash
+echo $PATH
+```
+
+Example
+
+```
+/usr/local/bin:
+/usr/bin:
+/bin:
+/usr/sbin
+```
+
+Linux searches these directories when you type a command.
+
+Example
+
+```bash
+python3
+```
+
+Linux checks each PATH directory until it finds
+
+```
+python3
+```
+
+---
+
+# VII. which
+
+Find where a command is located.
+
+```bash
+which python3
+```
+
+Output
+
+```
+/usr/bin/python3
+```
+
+---
+
+```bash
+which git
+```
+
+Output
+
+```
+/usr/bin/git
+```
+
+---
+
+# VIII. Creating Variables
+
+Temporary variable
+
+```bash
+name="Utpal"
+```
+
+Display
+
+```bash
+echo $name
+```
+
+Output
+
+```
+Utpal
+```
+
+This variable disappears when the terminal closes.
+
+---
+
+# IX. export
+
+Create an environment variable.
+
+```bash
+export PROJECT="ResearchMind AI"
+```
+
+Display
+
+```bash
+echo $PROJECT
+```
+
+---
+
+# X. Permanent Variables
+
+Temporary variables disappear.
+
+Permanent variables go into
+
+```
+~/.bashrc
+```
+
+Example
+
+```bash
+export MYPROJECT=~/projects
+```
+
+Add it to
+
+```
+~/.bashrc
+```
+
+Reload
+
+```bash
+source ~/.bashrc
+```
+
+---
+
+# XI. Aliases
+
+Aliases create shortcuts.
+
+Example
+
+```bash
+alias ll="ls -la"
+```
+
+Now
+
+```bash
+ll
+```
+
+works.
+
+---
+
+Another example
+
+```bash
+alias gs="git status"
+```
+
+Instead of
+
+```bash
+git status
+```
+
+simply type
+
+```bash
+gs
+```
+
+---
+
+# XII. .bashrc
+
+This file runs automatically whenever Bash starts.
+
+Typical uses
+
+- Aliases
+- Environment variables
+- Prompt customization
+- Startup commands
+
+View it
+
+```bash
+less ~/.bashrc
+```
+
+Edit it
+
+```bash
+nano ~/.bashrc
+```
+
+Reload
+
+```bash
+source ~/.bashrc
+```
+
+---
+
+# XIII. history
+
+Display previous commands.
+
+```bash
+history
+```
+
+Repeat command number
+
+```bash
+!25
+```
+
+Clear history
+
+```bash
+history -c
+```
+
+---
+
+# XIV. Useful Shortcuts
+
+Previous command
+
+```
+↑
+```
+
+Next command
+
+```
+↓
+```
+
+Search history
+
+```
+Ctrl + R
+```
+
+---
+
+# Commands Summary
+
+| Command | Purpose |
+|----------|---------|
+| echo | Display text or variables |
+| env | Display all environment variables |
+| printenv | Display environment variables |
+| export | Create environment variable |
+| source | Reload configuration |
+| alias | Create shortcuts |
+| history | View command history |
+| which | Locate commands |
+
+---
+
+# Best Practices
+
+- Never edit system PATH unless necessary.
+- Put custom aliases inside `.bashrc`.
+- Use meaningful environment variable names.
+- Use `source ~/.bashrc` after editing `.bashrc`.
+- Use `Ctrl + R` instead of scrolling through history.
+
+---
+
+# Practice
+
+Display
+
+```bash
+echo $HOME
+```
+
+Display
+
+```bash
+echo $PATH
+```
+
+Display
+
+```bash
+echo $USER
+```
+
+Display
+
+```bash
+echo $PWD
+```
+
+Create
+
+```bash
+language="Python"
+```
+
+Display
+
+```bash
+echo $language
+```
+
+Create
+
+```bash
+export COURSE="Linux"
+```
+
+Display
+
+```bash
+echo $COURSE
+```
+
+Create an alias
+
+```bash
+alias ll="ls -la"
+```
+
+Run
+
+```bash
+ll
+```
+
+View history
+
+```bash
+history
+```
+
+Search previous commands
+
+```
+Ctrl + R
+```
+
+---
+
+# Summary
+
+- Environment variables store configuration values.
+- `PATH` tells Linux where to find executable programs.
+- `HOME` stores the home directory.
+- `export` creates environment variables.
+- `.bashrc` stores permanent shell configuration.
+- `alias` creates command shortcuts.
+- `history` stores previous commands.
+
+---
+
+
 
 
 
