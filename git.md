@@ -853,23 +853,516 @@ You learned:
 - `logs/` records reference changes.
 - `hooks/` stores automation scripts.
 
+---  
+---
+---
+---
+---
+# 3 – Git Objects and the Commit Graph
+
 ---
 
-# Assignment
+# 🎯 Learning Objectives
 
-Using one of your Git projects:
+By the end of this lesson, you will be able to:
 
-1. Locate the `.git` directory.
-2. View the contents with `ls`.
-3. Open `HEAD`.
-4. Open `config`.
-5. Explain in your own words:
-   - What is `HEAD`?
-   - What is `index`?
-   - What is `objects/`?
-   - What is `refs/`?
+- Explain what Git Objects are.
+- Understand Blob Objects.
+- Understand Tree Objects.
+- Understand Commit Objects.
+- Understand how commits are connected.
+- Explain why Git is a Directed Acyclic Graph (DAG).
 
 ---
+
+# Introduction
+
+One of the reasons Git is so fast and efficient is its internal object model.
+
+Unlike traditional version control systems, Git does **not** store complete copies of your project for every version. Instead, it stores a collection of objects that together represent your project's history.
+
+Almost everything Git stores internally can be represented using just three object types:
+
+1. Blob
+2. Tree
+3. Commit
+
+Understanding these objects will make advanced Git topics such as branching, merging, rebasing, and conflict resolution much easier to understand.
+
+---
+
+# Everything in Git is an Object
+
+Git stores information as objects inside the `.git/objects` directory.
+
+The three fundamental object types are:
+
+- Blob
+- Tree
+- Commit
+
+Everything else in Git is built on top of these objects.
+
+---
+
+# Example Project
+
+Consider the following project:
+
+```text
+portfolio/
+│
+├── README.md
+├── app.py
+└── src/
+    ├── main.py
+    └── utils.py
+```
+
+Git converts this directory structure into objects.
+
+---
+
+# Blob Object
+
+Blob stands for **Binary Large Object**.
+
+A Blob stores only the **contents of a file**.
+
+Suppose `README.md` contains:
+
+```text
+Hello Git
+```
+
+Git stores:
+
+```text
+Blob
+└── "Hello Git"
+```
+
+Notice what is **not** stored:
+
+- filename
+- directory name
+- permissions
+- timestamps
+
+A Blob contains **only the file contents**.
+
+---
+
+# Tree Object
+
+A Tree represents a directory.
+
+For our project:
+
+```text
+portfolio/
+├── README.md
+├── app.py
+└── src/
+```
+
+Git creates a Tree object that contains:
+
+```text
+Tree
+├── README.md → Blob A
+├── app.py    → Blob B
+└── src       → Tree C
+```
+
+The `src` directory is itself another Tree:
+
+```text
+Tree C
+├── main.py  → Blob D
+└── utils.py → Blob E
+```
+
+A Tree acts like a directory map, connecting filenames to Blob or Tree objects.
+
+---
+
+# Commit Object
+
+A Commit represents a snapshot of your project.
+
+A Commit stores:
+
+- A pointer to the root Tree
+- Author information
+- Commit date
+- Commit message
+- Parent commit
+
+Example:
+
+```text
+Commit
+│
+├── Tree
+├── Author: Utpal
+├── Date: 06 July 2026
+├── Message: "Initial Commit"
+└── Parent: None
+```
+
+For later commits:
+
+```text
+Commit
+│
+├── Tree
+├── Author
+├── Date
+├── Message
+└── Parent → Previous Commit
+```
+
+---
+
+# Relationship Between Objects
+
+Git organizes objects like this:
+
+```text
+Commit
+   │
+   ▼
+ Tree
+ ├── README.md → Blob
+ ├── app.py    → Blob
+ └── src
+      │
+      ▼
+     Tree
+     ├── main.py  → Blob
+     └── utils.py → Blob
+```
+
+A Commit points to a Tree.
+
+A Tree points to Blobs and other Trees.
+
+Blobs contain the actual file contents.
+
+---
+
+# What Happens When One File Changes?
+
+Suppose only `README.md` changes.
+
+Git creates:
+
+- One new Blob
+- One updated Tree
+- One new Commit
+
+Everything else is reused.
+
+Instead of copying thousands of files, Git stores only the new objects required to represent the changes.
+
+This is one reason Git is extremely efficient.
+
+---
+
+# Commit Chain
+
+Suppose we create three commits.
+
+```text
+Commit A
+    │
+    ▼
+Commit B
+    │
+    ▼
+Commit C
+```
+
+Internally:
+
+```text
+Commit C
+│
+└── Parent → Commit B
+
+Commit B
+│
+└── Parent → Commit A
+```
+
+Each commit stores a reference to its parent.
+
+Together these references create the project's history.
+
+---
+
+# Why Git is Called a DAG
+
+Git's history is a **Directed Acyclic Graph (DAG)**.
+
+Let's understand each word.
+
+## Directed
+
+Each commit points in one direction.
+
+```text
+A → B → C
+```
+
+---
+
+## Acyclic
+
+The graph never forms a loop.
+
+This is impossible:
+
+```text
+A → B → C
+↑       │
+└───────┘
+```
+
+Git history always moves forward.
+
+---
+
+## Graph
+
+A graph is simply a collection of connected nodes.
+
+Git commits form a graph because each commit points to another commit.
+
+---
+
+# Branch Example
+
+Initially:
+
+```text
+A → B → C
+```
+
+Create a branch:
+
+```text
+           C (main)
+          /
+A → B
+          \
+           D → E (feature-login)
+```
+
+Both branches share the same history until they diverge.
+
+---
+
+# Merge Example
+
+Later:
+
+```text
+A → B → C
+      \
+       D → E
+            \
+             M
+```
+
+`M` is a Merge Commit.
+
+It has **two parents**.
+
+We'll study merge commits in a later lesson.
+
+---
+
+# HEAD Revisited
+
+HEAD points to your current commit.
+
+Example:
+
+```text
+HEAD
+ │
+ ▼
+Commit C
+```
+
+After another commit:
+
+```text
+HEAD
+ │
+ ▼
+Commit D
+```
+
+HEAD automatically moves to the newest commit on the current branch.
+
+---
+
+# Why Git is Fast
+
+Git creates only the objects that have changed.
+
+Suppose a React project contains:
+
+```text
+3000 files
+```
+
+You modify:
+
+```text
+App.jsx
+```
+
+Git typically creates:
+
+- One Blob
+- One Tree
+- One Commit
+
+instead of copying all 3000 files.
+
+This object-based design is what makes Git so efficient.
+
+---
+
+# Inspecting Objects
+
+View commit history:
+
+```bash
+git log --oneline
+```
+
+Inspect the current Commit object:
+
+```bash
+git cat-file -p HEAD
+```
+
+Example output:
+
+```text
+tree 3a0d...
+parent e27c...
+author Utpal
+committer Utpal
+
+Initial Commit
+```
+
+View the corresponding Tree:
+
+```bash
+git cat-file -p HEAD^{tree}
+```
+
+This displays the directory structure stored by Git.
+
+---
+
+# Real-World Example
+
+Suppose your portfolio project contains:
+
+```text
+500 files
+```
+
+You change only:
+
+```text
+Navbar.jsx
+```
+
+Git does **not** duplicate all 500 files.
+
+Instead it creates:
+
+- One new Blob
+- One updated Tree
+- One new Commit
+
+Everything else is reused from previous commits.
+
+---
+
+# Key Takeaways
+
+- Git stores everything as objects.
+- Blob objects store file contents.
+- Tree objects represent directories.
+- Commit objects represent snapshots.
+- Commits point to parent commits.
+- Git history forms a Directed Acyclic Graph (DAG).
+- HEAD points to the current commit.
+- Git's object model makes commits extremely fast and storage efficient.
+
+---
+
+# Exercise
+
+Run the following commands inside one of your repositories.
+
+View commit history:
+
+```bash
+git log --oneline
+```
+
+Inspect the current commit:
+
+```bash
+git cat-file -p HEAD
+```
+
+Inspect the current tree:
+
+```bash
+git cat-file -p HEAD^{tree}
+```
+
+Observe:
+
+- Tree
+- Parent
+- Author
+- Commit message
+
+---
+
+# Summary
+
+In this lesson you learned the internal object model used by Git.
+
+Git stores information using three object types:
+
+- Blob
+- Tree
+- Commit
+
+These objects are connected together to form the commit graph.
+
+Understanding this architecture provides the conceptual foundation for advanced Git topics such as branching, merging, rebasing, and conflict resolution.
+
+---
+
+
+
+
+
 
 
 
