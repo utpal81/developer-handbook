@@ -864,8 +864,6 @@ You learned:
 
 # 🎯 Learning Objectives
 
-By the end of this lesson, you will be able to:
-
 - Explain what Git Objects are.
 - Understand Blob Objects.
 - Understand Tree Objects.
@@ -1367,8 +1365,6 @@ Understanding this architecture provides the conceptual foundation for advanced 
 ---
 
 # 🎯 Learning Objectives
-
-By the end of this lesson, I will be able to:
 
 - Explain what a Git branch is.
 - Understand why branches are lightweight.
@@ -2543,7 +2539,650 @@ If both branches have diverged, Git performs a **Three-Way Merge**, creating a s
 Understanding these merge strategies helps developers collaborate confidently and resolve conflicts when they arise.
 
 ---
+---
+---
+---
+---
 
+# 6 – Rebasing: Rewriting History
+
+---
+
+# 🎯 Objectives
+
+- Explain what rebasing is.
+- Distinguish between Merge and Rebase.
+- Understand how Git moves commits during a rebase.
+- Use Interactive Rebase.
+- Squash multiple commits into one.
+- Know when rebasing is appropriate and when it is dangerous.
+
+---
+
+# Why Do We Need Rebase?
+
+Suppose the history starts like this.
+
+```text
+A → B → C
+```
+
+Create a feature branch.
+
+```text
+feature-login
+```
+
+Now:
+
+```text
+A → B → C
+          ▲
+          │
+        main
+          ▲
+          │
+ feature-login
+```
+
+---
+
+# Development Continues
+
+Feature branch:
+
+```text
+A → B → C → D → E
+```
+
+Meanwhile, another developer updates main.
+
+```text
+A → B → C → F → G
+```
+
+Now the histories have diverged.
+
+---
+
+# Option 1 – Merge
+
+Using
+
+```bash
+git merge feature-login
+```
+
+produces
+
+```text
+          D → E
+         /      \
+A → B → C        M
+         \      /
+          F → G
+```
+
+History is preserved exactly as it happened.
+
+A Merge Commit is created.
+
+---
+
+# Option 2 – Rebase
+
+Instead:
+
+```bash
+git switch feature-login
+
+git rebase main
+```
+
+Git says:
+
+> "Pretend you started working after Commit G."
+
+Git temporarily removes:
+
+```
+D
+
+E
+```
+
+Moves to:
+
+```
+G
+```
+
+Then reapplies
+
+```
+D
+
+E
+```
+
+One by one.
+
+Result:
+
+```text
+A → B → C → F → G → D' → E'
+```
+
+Notice:
+
+They are
+
+```
+D'
+
+E'
+```
+
+Not
+
+```
+D
+
+E
+```
+
+Git created **new commits**.
+
+---
+
+# Why New Commits?
+
+Commits are immutable.
+
+Once created,
+
+they never change.
+
+Therefore,
+
+Git creates
+
+```
+D'
+
+E'
+```
+
+instead of modifying
+
+```
+D
+
+E
+```
+
+---
+
+# Merge vs Rebase
+
+Merge
+
+```text
+          D → E
+         /      \
+A → B → C        M
+         \      /
+          F → G
+```
+
+History preserved.
+
+---
+
+Rebase
+
+```text
+A → B → C → F → G → D' → E'
+```
+
+Linear history.
+
+No Merge Commit.
+
+---
+
+# Advantages of Rebase
+
+✔ Cleaner history
+
+✔ Easier to read
+
+✔ No unnecessary Merge Commits
+
+✔ Better for feature branches
+
+---
+
+# Disadvantages
+
+History changes.
+
+Commit IDs change.
+
+Previously shared commits disappear.
+
+This is why rebasing shared branches can be dangerous.
+
+---
+
+# Interactive Rebase
+
+One of Git's most powerful tools.
+
+Run
+
+```bash
+git rebase -i HEAD~3
+```
+
+Git opens
+
+```text
+pick a1b2 First commit
+
+pick c3d4 Second commit
+
+pick e5f6 Third commit
+```
+
+---
+
+# Squashing Commits
+
+Suppose your history is
+
+```text
+Add login page
+
+Fix typo
+
+Fix CSS
+
+Fix button
+
+Fix typo again
+```
+
+This is messy.
+
+Interactive rebase allows
+
+```text
+pick Add login page
+
+squash Fix typo
+
+squash Fix CSS
+
+squash Fix button
+
+squash Fix typo again
+```
+
+Result
+
+```text
+Add complete login feature
+```
+
+One clean commit.
+
+---
+
+# Reordering Commits
+
+Interactive rebase also lets you reorder commits.
+
+Before
+
+```text
+A
+
+B
+
+C
+```
+
+After
+
+```text
+A
+
+C
+
+B
+```
+
+---
+
+# Editing Commit Messages
+
+Suppose
+
+```text
+git commit
+
+"asdf"
+```
+
+Oops.
+
+Use
+
+```bash
+git rebase -i HEAD~1
+```
+
+Choose
+
+```text
+reword
+```
+
+Git lets you write a proper message.
+
+---
+
+# Removing Commits
+
+Interactive rebase
+
+Delete
+
+```text
+pick
+```
+
+line
+
+or choose
+
+```text
+drop
+```
+
+Commit disappears.
+
+---
+
+# Visual Example
+
+Before
+
+```text
+main
+
+↓
+
+A → B → C
+
+↓
+
+feature
+
+↓
+
+D → E
+```
+
+Meanwhile
+
+```text
+main
+
+↓
+
+A → B → C → F → G
+```
+
+After rebase
+
+```text
+A → B → C → F → G → D' → E'
+```
+
+---
+
+# Real Example
+
+Portfolio Website
+
+You make
+
+```text
+20 tiny commits
+```
+
+```
+Fix typo
+
+Spacing
+
+Button
+
+Color
+
+Navbar
+
+Footer
+
+Image
+```
+
+Before opening a Pull Request
+
+Use
+
+```bash
+git rebase -i
+```
+
+Squash everything into
+
+```text
+Complete Portfolio Homepage
+```
+
+Much cleaner.
+
+---
+
+# When Should You Use Rebase?
+
+Good
+
+✔ Before opening Pull Request
+
+✔ Cleaning your own commits
+
+✔ Keeping feature branches updated
+
+✔ Local branches
+
+---
+
+# When Should You NOT Use Rebase?
+
+Never rebase
+
+- main
+
+- shared branches
+
+- commits already pushed that others may have based work on
+
+Otherwise,
+
+everyone else's history breaks.
+
+---
+
+# Golden Rule
+
+> Rebase your own work.
+
+Never rewrite someone else's history.
+
+---
+
+# Useful Commands
+
+Rebase current branch
+
+```bash
+git rebase main
+```
+
+Interactive rebase
+
+```bash
+git rebase -i HEAD~5
+```
+
+Abort
+
+```bash
+git rebase --abort
+```
+
+Continue
+
+```bash
+git rebase --continue
+```
+
+---
+
+# Rebase Conflict
+
+Sometimes
+
+Git stops.
+
+Example
+
+```text
+CONFLICT
+
+app.py
+```
+
+Fix
+
+```text
+app.py
+```
+
+Then
+
+```bash
+git add app.py
+
+git rebase --continue
+```
+
+Repeat until complete.
+
+---
+
+# Merge or Rebase?
+
+Use Merge when
+
+- preserving exact history matters
+
+- working on shared branches
+
+Use Rebase when
+
+- cleaning local history
+
+- preparing Pull Requests
+
+- updating feature branches
+
+---
+
+# Common Mistakes
+
+❌ Rebasing main
+
+❌ Rebasing commits already pushed publicly
+
+❌ Forgetting to resolve conflicts
+
+❌ Force pushing without understanding the consequences
+
+---
+
+# Hands-on Exercise
+
+Create a repository.
+
+Create
+
+```
+feature-demo
+```
+
+Make
+
+```
+5 commits
+```
+
+Use
+
+```bash
+git rebase -i HEAD~5
+```
+
+Squash them into
+
+```
+One clean commit
+```
+
+Observe
+
+```bash
+git log --oneline
+```
+
+---
+
+# Key Takeaways
+
+- Merge preserves history.
+- Rebase rewrites history.
+- Rebase creates new commits.
+- Interactive Rebase cleans commit history.
+- Squashing makes history easier to read.
+- Never rewrite shared history.
+
+---
+
+# Summary
+
+Rebasing is Git's mechanism for moving a sequence of commits onto a new base commit.
+
+Unlike merging, which combines histories using a Merge Commit, rebasing rewrites history by creating new commits.
+
+Interactive Rebase provides powerful tools for cleaning, squashing, reordering, and editing commits before sharing your work.
+
+Understanding when to merge and when to rebase is one of the most important skills in professional Git workflows.
+
+---
 
 
 
