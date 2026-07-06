@@ -2027,6 +2027,374 @@ q
 - `top` monitors system activity.
 
 ---
+---
+---
+---
+---
+# 6 - Package Management (APT)
+
+## Objectives
+
+After completing this section, I should be able to:
+
+- Understand what a package manager is.
+- Install software using APT.
+- Update package information.
+- Upgrade installed software.
+- Remove software.
+- Search for available packages.
+- Understand the difference between update and upgrade.
+
+---
+
+# I. What is a Package Manager?
+
+A package manager is a tool that installs, updates, removes, and manages software.
+
+Instead of downloading software from websites, Linux installs software from trusted repositories.
+
+Ubuntu uses:
+
+```
+APT
+```
+
+which stands for
+
+**Advanced Package Tool**
+
+---
+
+# II. Software Repositories
+
+Think of repositories as an app store for Linux.
+
+```
+Ubuntu Repository
+        │
+        ▼
+APT
+        │
+        ▼
+Your Computer
+```
+
+Instead of downloading programs manually, APT downloads verified packages.
+
+---
+
+# III. sudo
+
+Many package management commands require administrator privileges.
+
+Example
+
+```bash
+sudo apt update
+```
+
+`sudo` means
+
+> Execute this command as the administrator.
+
+---
+
+# IV. apt update
+
+## Purpose
+
+Download the latest package information.
+
+## Syntax
+
+```bash
+sudo apt update
+```
+
+### What it does
+
+Updates the package list.
+
+It **does not install or upgrade software.**
+
+Think of it as refreshing the software catalog.
+
+---
+
+# V. apt upgrade
+
+## Purpose
+
+Upgrade installed software.
+
+## Syntax
+
+```bash
+sudo apt upgrade
+```
+
+This installs newer versions of packages already installed.
+
+---
+
+# Difference
+
+```
+apt update
+```
+
+Refresh package information.
+
+```
+apt upgrade
+```
+
+Install newer versions.
+
+Always run
+
+```bash
+sudo apt update
+```
+
+before
+
+```bash
+sudo apt upgrade
+```
+
+---
+
+# VI. apt install
+
+## Purpose
+
+Install software.
+
+Syntax
+
+```bash
+sudo apt install package_name
+```
+
+Example
+
+Install Git
+
+```bash
+sudo apt install git
+```
+
+Install Tree
+
+```bash
+sudo apt install tree
+```
+
+Install Curl
+
+```bash
+sudo apt install curl
+```
+
+Install Htop
+
+```bash
+sudo apt install htop
+```
+
+---
+
+# VII. apt remove
+
+## Purpose
+
+Remove installed software.
+
+Syntax
+
+```bash
+sudo apt remove package_name
+```
+
+Example
+
+```bash
+sudo apt remove tree
+```
+
+---
+
+# VIII. apt purge
+
+Removes the package **and** its configuration files.
+
+Example
+
+```bash
+sudo apt purge tree
+```
+
+---
+
+# IX. apt autoremove
+
+Remove packages that are no longer needed.
+
+```bash
+sudo apt autoremove
+```
+
+Useful after uninstalling software.
+
+---
+
+# X. apt search
+
+Search for available software.
+
+Example
+
+```bash
+apt search python
+```
+
+---
+
+# XI. apt list
+
+List installed packages.
+
+```bash
+apt list --installed
+```
+
+---
+
+# XII. dpkg
+
+Shows information about installed packages.
+
+Example
+
+```bash
+dpkg -l
+```
+
+Search
+
+```bash
+dpkg -l | grep git
+```
+
+---
+
+# Commands Summary 
+
+| Command | Purpose |
+|----------|---------|
+| `apt update` | Refresh package information |
+| `apt upgrade` | Upgrade installed software |
+| `apt install` | Install software |
+| `apt remove` | Remove software |
+| `apt purge` | Remove software and configuration |
+| `apt autoremove` | Remove unused packages |
+| `apt search` | Search repositories |
+| `apt list --installed` | List installed packages |
+| `dpkg -l` | List installed packages |
+
+---
+
+# Best Practices
+
+Always
+
+```bash
+sudo apt update
+```
+
+before installing software.
+
+Install only software you actually need.
+
+Run
+
+```bash
+sudo apt autoremove
+```
+
+occasionally.
+
+Prefer the official Ubuntu repositories whenever possible.
+
+---
+
+# Practice
+
+Refresh package information.
+
+```bash
+sudo apt update
+```
+
+Search for Git.
+
+```bash
+apt search git
+```
+
+Verify Git installation.
+
+```bash
+git --version
+```
+
+Search for Tree.
+
+```bash
+apt search tree
+```
+
+Install Tree.
+
+```bash
+sudo apt install tree
+```
+
+Display your project structure.
+
+```bash
+tree ~/projects
+```
+
+Search for Curl.
+
+```bash
+apt search curl
+```
+
+Check Curl version.
+
+```bash
+curl --version
+```
+
+---
+
+# Summary
+
+- APT is Ubuntu's package manager.
+- Repositories are trusted software sources.
+- `apt update` refreshes package information.
+- `apt upgrade` installs newer versions.
+- `apt install` installs software.
+- `apt remove` removes software.
+- `apt search` searches available packages.
+- `tree` is useful for visualizing directory structures.
+
+---
+
+
 
 
 
