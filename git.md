@@ -1919,6 +1919,632 @@ Because branches are simply pointers, Git can create them instantly regardless o
 This elegant design enables developers to work on multiple features simultaneously while keeping the main branch stable.
 
 ---
+---
+---
+---
+---
+# 5 – Merging Branches
+
+---
+
+# 🎯 Objectives
+
+- Explain why branches are merged.
+- Understand Fast-Forward Merge.
+- Understand Three-Way Merge.
+- Understand Merge Commits.
+- Resolve merge conflicts.
+- Apply best practices for merging.
+
+---
+
+# Why Do We Merge?
+
+Suppose your repository starts like this:
+
+```text
+A → B → C   (main)
+```
+
+You create a feature branch:
+
+```bash
+git switch -c feature-login
+```
+
+Now both branches point to Commit C.
+
+```text
+              main
+                │
+                ▼
+A → B → C
+          ▲
+          │
+ feature-login
+```
+
+---
+
+# Development Continues
+
+You make two commits.
+
+```text
+A → B → C → D → E
+                  ▲
+                  │
+          feature-login
+
+main
+ │
+ ▼
+ C
+```
+
+Your feature is complete.
+
+Now you want those commits on `main`.
+
+This is called **merging**.
+
+---
+
+# Merge Command
+
+Switch to the destination branch.
+
+```bash
+git switch main
+```
+
+Merge:
+
+```bash
+git merge feature-login
+```
+
+Git now combines the histories.
+
+---
+
+# Fast-Forward Merge
+
+This is the simplest merge.
+
+Before:
+
+```text
+main
+
+↓
+
+A → B → C
+
+↓
+
+feature
+
+↓
+
+D → E
+```
+
+More clearly:
+
+```text
+A → B → C → D → E
+                  ▲
+                  │
+          feature-login
+
+main
+ │
+ ▼
+ C
+```
+
+Git notices:
+
+> "main has not changed."
+
+So it simply moves the pointer.
+
+After:
+
+```text
+A → B → C → D → E
+                  ▲
+                  │
+         main
+
+                  ▲
+                  │
+        feature-login
+```
+
+No new commit is created.
+
+Git only moves the `main` pointer.
+
+This is called a **Fast-Forward Merge**.
+
+---
+
+# Why "Fast-Forward"?
+
+Git simply fast-forwards the branch pointer.
+
+No history is combined.
+
+Nothing complicated happens.
+
+---
+
+# Three-Way Merge
+
+Now suppose something different happens.
+
+Initial history:
+
+```text
+A → B → C
+```
+
+Create feature branch.
+
+Then both branches continue independently.
+
+```text
+           D → E
+          /
+A → B → C
+          \
+           F → G
+```
+
+Where
+
+```
+D → E
+```
+
+belongs to
+
+```
+feature-login
+```
+
+and
+
+```
+F → G
+```
+
+belongs to
+
+```
+main
+```
+
+Now Git cannot simply move a pointer.
+
+It must combine both histories.
+
+---
+
+# Merge Commit
+
+Git creates a special commit.
+
+```text
+           D → E
+          /      \
+A → B → C         M
+          \      /
+           F → G
+```
+
+`M`
+
+is called a **Merge Commit**.
+
+Unlike ordinary commits,
+
+Merge Commit has
+
+**two parents**.
+
+Parent 1:
+
+```
+E
+```
+
+Parent 2:
+
+```
+G
+```
+
+---
+
+# Visualizing the Parents
+
+Ordinary commit:
+
+```text
+Commit
+
+↓
+
+Parent
+```
+
+Merge Commit:
+
+```text
+        Merge
+
+      ↙       ↘
+
+ Parent 1   Parent 2
+```
+
+This is why Git history becomes a graph.
+
+---
+
+# Merge Conflict
+
+Suppose
+
+Both branches modify
+
+```text
+app.py
+```
+
+Feature branch:
+
+```python
+title = "Login"
+```
+
+Main branch:
+
+```python
+title = "Authentication"
+```
+
+Git doesn't know which version is correct.
+
+Result:
+
+```
+Merge Conflict
+```
+
+---
+
+# Conflict Markers
+
+Git inserts markers.
+
+```text
+<<<<<<< HEAD
+
+title = "Authentication"
+
+=======
+
+title = "Login"
+
+>>>>>>> feature-login
+```
+
+Meaning:
+
+Everything between
+
+```text
+<<<<<<< HEAD
+```
+
+and
+
+```text
+=======
+```
+
+belongs to
+
+```
+main
+```
+
+Everything below
+
+```
+=======
+```
+
+belongs to
+
+```
+feature-login
+```
+
+---
+
+# Resolving Conflict
+
+Edit manually.
+
+Choose:
+
+```python
+title = "User Authentication"
+```
+
+Remove the markers.
+
+Save.
+
+Stage:
+
+```bash
+git add app.py
+```
+
+Finish:
+
+```bash
+git commit
+```
+
+Merge complete.
+
+---
+
+# Checking History
+
+Use
+
+```bash
+git log --oneline --graph
+```
+
+Example:
+
+```text
+*   Merge feature-login
+
+|\
+
+| * Login page
+
+| *
+
+* | Navbar update
+
+|/
+
+* Initial Commit
+```
+
+The graph shows the merge visually.
+
+---
+
+# Fast-Forward vs Three-Way Merge
+
+Fast-Forward
+
+```text
+A → B → C → D
+```
+
+Only pointer moves.
+
+---
+
+Three-Way
+
+```text
+      D → E
+
+     /      \
+
+A → B → C    M
+
+     \      /
+
+      F → G
+```
+
+New Merge Commit.
+
+---
+
+# Real Example
+
+Portfolio Website
+
+Branch:
+
+```
+feature-skills
+```
+
+Another developer works on
+
+```
+feature-contact
+```
+
+Both branches finish.
+
+Git merges them into
+
+```
+main
+```
+
+without affecting each other's work.
+
+---
+
+# Best Practices
+
+✔ Keep feature branches small.
+
+✔ Merge frequently.
+
+✔ Pull latest changes before merging.
+
+✔ Write meaningful commit messages.
+
+✔ Delete merged branches.
+
+---
+
+# Commands
+
+Create branch
+
+```bash
+git switch -c feature-login
+```
+
+Merge
+
+```bash
+git switch main
+
+git merge feature-login
+```
+
+Delete merged branch
+
+```bash
+git branch -d feature-login
+```
+
+View graph
+
+```bash
+git log --graph --oneline --all
+```
+
+---
+
+# Exercise
+
+Create a practice repository.
+
+1.
+
+```bash
+git init
+```
+
+2.
+
+Create first commit.
+
+3.
+
+Create
+
+```text
+feature-demo
+```
+
+4.
+
+Make two commits.
+
+5.
+
+Switch back to
+
+```text
+main
+```
+
+6.
+
+Make another commit.
+
+7.
+
+Merge.
+
+Observe whether Git performs
+
+- Fast-Forward
+
+or
+
+- Three-Way Merge.
+
+---
+
+# Common Mistakes
+
+❌ Editing conflict markers incorrectly.
+
+❌ Forgetting to stage resolved files.
+
+❌ Deleting feature branches before merging.
+
+❌ Working directly on `main`.
+
+---
+
+# Key Takeaways
+
+- Merging combines branch histories.
+- Fast-Forward Merge only moves a pointer.
+- Three-Way Merge creates a Merge Commit.
+- Merge Commits have two parents.
+- Merge conflicts occur when Git cannot decide between competing changes.
+- Conflicts are resolved manually.
+
+---
+
+# Assignment
+
+Create two branches.
+
+Modify the same file differently.
+
+Merge them.
+
+Observe:
+
+- Conflict markers
+- Merge Commit
+- Git graph
+
+Explain why the conflict occurred.
+
+---
+
+# Summary
+
+Git merges branches by combining their commit histories.
+
+If one branch is simply ahead of the other, Git performs a **Fast-Forward Merge**.
+
+If both branches have diverged, Git performs a **Three-Way Merge**, creating a special Merge Commit with two parents.
+
+Understanding these merge strategies helps developers collaborate confidently and resolve conflicts when they arise.
+
+---
+
+
 
 
 
