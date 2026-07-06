@@ -3186,6 +3186,676 @@ Understanding when to merge and when to rebase is one of the most important skil
 
 
 
+# 7 – Undoing Mistakes in Git
+
+---
+
+# 🎯 Objectives
+
+- Understand the different ways of undoing changes.
+- Know when to use:
+  - `git restore`
+  - `git reset`
+  - `git revert`
+  - `git checkout`
+  - `git reflog`
+- Recover deleted commits.
+- Recover deleted branches.
+- Avoid common mistakes when undoing work.
+
+---
+
+# Introduction
+
+One of Git's greatest strengths is that almost nothing is permanently lost immediately.
+
+Most mistakes can be recovered.
+
+However, different mistakes require different commands.
+
+This lesson helps you answer one question:
+
+> "Which Git command should I use?"
+
+---
+
+# The Four Places Where Changes Can Exist
+
+Before learning the commands, remember Git's workflow.
+
+```text
+Working Directory
+        │
+        ▼
+Staging Area
+        │
+        ▼
+Repository
+        │
+        ▼
+Remote Repository
+```
+
+Every undo command affects one or more of these areas.
+
+---
+
+# Situation 1
+
+## You modified a file but haven't staged it.
+
+Example
+
+```bash
+git status
+```
+
+Output
+
+```text
+modified: app.py
+```
+
+You decide:
+
+> "I don't want these changes."
+
+Use
+
+```bash
+git restore app.py
+```
+
+Result
+
+```text
+Working Directory
+
+↓
+
+Previous committed version
+```
+
+Only the working directory changes.
+
+Nothing else changes.
+
+---
+
+# Situation 2
+
+## You staged the wrong file.
+
+```bash
+git add app.py
+```
+
+Oops.
+
+You don't want it staged.
+
+Use
+
+```bash
+git restore --staged app.py
+```
+
+Result
+
+```text
+Working Directory
+    ✓
+
+Staging Area
+    Removed
+```
+
+The file remains edited.
+
+It simply leaves the staging area.
+
+---
+
+# Situation 3
+
+## You made a commit.
+
+```bash
+git commit -m "Wrong commit"
+```
+
+Now you want to remove it.
+
+Use
+
+```bash
+git reset
+```
+
+But there are three kinds.
+
+---
+
+# Soft Reset
+
+```bash
+git reset --soft HEAD~1
+```
+
+Result
+
+```text
+Commit removed
+
+↓
+
+Changes remain staged
+```
+
+Visual
+
+```text
+Before
+
+Working
+↓
+
+Stage
+↓
+
+Commit A
+↓
+
+Commit B
+```
+
+After
+
+```text
+Working
+↓
+
+Stage
+↓
+
+Commit A
+```
+
+Files are still staged.
+
+---
+
+# Mixed Reset (Default)
+
+```bash
+git reset HEAD~1
+```
+
+or
+
+```bash
+git reset --mixed HEAD~1
+```
+
+Result
+
+```text
+Commit removed
+
+↓
+
+Changes remain
+
+↓
+
+Not staged
+```
+
+This is the default behavior.
+
+---
+
+# Hard Reset
+
+```bash
+git reset --hard HEAD~1
+```
+
+Result
+
+```text
+Commit removed
+
+↓
+
+Working Directory removed
+
+↓
+
+Stage removed
+```
+
+Everything goes back.
+
+Use with extreme caution.
+
+---
+
+# Visual Comparison
+
+## Soft
+
+```text
+Commit ❌
+
+Stage ✓
+
+Working ✓
+```
+
+---
+
+## Mixed
+
+```text
+Commit ❌
+
+Stage ❌
+
+Working ✓
+```
+
+---
+
+## Hard
+
+```text
+Commit ❌
+
+Stage ❌
+
+Working ❌
+```
+
+---
+
+# Situation 4
+
+## You already pushed the commit.
+
+Never use
+
+```bash
+git reset
+```
+
+Instead
+
+```bash
+git revert
+```
+
+---
+
+# What Does Revert Do?
+
+Suppose
+
+```text
+A → B → C
+```
+
+Commit
+
+```
+C
+```
+
+introduced a bug.
+
+Run
+
+```bash
+git revert C
+```
+
+Git creates
+
+```text
+A → B → C → D
+```
+
+Where
+
+```
+D
+```
+
+undoes
+
+```
+C
+```
+
+Notice
+
+History is preserved.
+
+Nothing disappears.
+
+This is why teams prefer
+
+```bash
+git revert
+```
+
+on shared branches.
+
+---
+
+# Situation 5
+
+## Detached HEAD
+
+Suppose
+
+```bash
+git checkout 4d5ab2
+```
+
+Git says
+
+```text
+Detached HEAD
+```
+
+Meaning
+
+HEAD points directly to a commit.
+
+Not to a branch.
+
+You're no longer on
+
+```text
+main
+```
+
+or
+
+```text
+feature
+```
+
+You're simply looking at an old snapshot.
+
+Return
+
+```bash
+git switch main
+```
+
+---
+
+# Situation 6
+
+## You accidentally deleted a branch.
+
+Example
+
+```bash
+git branch -D feature-login
+```
+
+Oops.
+
+Can Git recover it?
+
+Usually yes.
+
+Use
+
+```bash
+git reflog
+```
+
+---
+
+# What is Reflog?
+
+Git records every movement of HEAD.
+
+Example
+
+```text
+HEAD@{0}
+
+HEAD@{1}
+
+HEAD@{2}
+```
+
+Even deleted commits often appear.
+
+---
+
+# Recover Lost Commit
+
+Suppose
+
+```text
+HEAD@{3}
+
+↓
+
+a4b6d9
+```
+
+Recover
+
+```bash
+git checkout a4b6d9
+```
+
+or
+
+```bash
+git branch recovered a4b6d9
+```
+
+Nothing is lost.
+
+---
+
+# Recover After Hard Reset
+
+Even
+
+```bash
+git reset --hard
+```
+
+often isn't permanent.
+
+Use
+
+```bash
+git reflog
+```
+
+Find
+
+```text
+HEAD@{5}
+```
+
+Recover
+
+```bash
+git reset --hard HEAD@{5}
+```
+
+Magic!
+
+---
+
+# Real Example
+
+You accidentally delete
+
+```text
+Navbar.jsx
+```
+
+Run
+
+```bash
+git restore Navbar.jsx
+```
+
+Recovered instantly.
+
+---
+
+Another example.
+
+You accidentally commit
+
+```text
+.env
+```
+
+Undo
+
+```bash
+git reset --soft HEAD~1
+```
+
+Remove
+
+```
+.env
+```
+
+Commit again.
+
+---
+
+# Which Command Should I Use?
+
+| Situation | Command |
+|-----------|----------|
+| Discard file changes | `git restore` |
+| Unstage a file | `git restore --staged` |
+| Undo last commit (keep staged) | `git reset --soft` |
+| Undo last commit (keep files) | `git reset` |
+| Undo last commit completely | `git reset --hard` |
+| Undo pushed commit | `git revert` |
+| Recover lost work | `git reflog` |
+
+---
+
+# Common Mistakes
+
+❌ Using `git reset --hard` without understanding it.
+
+❌ Using `git reset` after pushing.
+
+❌ Ignoring `git reflog`.
+
+❌ Panicking before checking the reflog.
+
+---
+
+# Exercise
+
+Create a repository.
+
+1.
+
+Create
+
+```text
+hello.txt
+```
+
+Commit.
+
+2.
+
+Modify it.
+
+Run
+
+```bash
+git restore hello.txt
+```
+
+3.
+
+Commit again.
+
+Run
+
+```bash
+git reset --soft HEAD~1
+```
+
+Observe.
+
+4.
+
+Run
+
+```bash
+git reset HEAD~1
+```
+
+Observe.
+
+5.
+
+Run
+
+```bash
+git reflog
+```
+
+Observe the history.
+
+---
+
+# Key Takeaways
+
+- `git restore` affects the working directory.
+- `git restore --staged` removes files from staging.
+- `git reset` rewrites local history.
+- `git revert` creates a new commit that undoes a previous one.
+- `git reflog` is one of Git's most valuable recovery tools.
+- Most Git mistakes can be recovered if you act before Git's garbage collection removes unreachable objects.
+
+---
+
+# Summary
+
+Git provides several commands for undoing mistakes, each designed for a specific stage of the workflow.
+
+Choosing the correct command depends on whether your changes are:
+
+- Unstaged
+- Staged
+- Committed
+- Already pushed
+
+Understanding these differences helps you recover safely without accidentally losing work.
+
+---
+
+
+
+
+
+
 
 
 
