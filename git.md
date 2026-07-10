@@ -4654,6 +4654,7 @@ Local Repository --------> Working Directory
 
 ---
 
+
 ## Quick Summary
 
 | Command | From | To |
@@ -4664,6 +4665,707 @@ Local Repository --------> Working Directory
 | `git clone` | Remote Repository | Local Repository |
 | `git pull` | Remote Repository | Working Directory |
 | `git checkout` | Local Repository | Working Directory |
+
+---
+---
+---
+---
+---
+
+## Lesson 9 – Professional GitHub Workflow
+
+---
+
+# 🎯 Objectives
+
+By the end of this lesson, you will be able to:
+
+- Understand how professional teams use GitHub.
+- Explain the Feature Branch Workflow.
+- Understand Pull Requests.
+- Understand Code Reviews.
+- Understand Protected Branches.
+- Understand Forks.
+- Compare GitHub Flow and Git Flow.
+- Follow industry best practices.
+
+---
+
+# Introduction
+
+So far, we have been working alone.
+
+Professional software development is different.
+
+Instead of everyone committing directly to the `main` branch, each developer works independently and then requests that their changes be merged.
+
+This process keeps the main branch stable and encourages code review before changes are integrated.
+
+---
+---
+
+# The Professional Workflow
+
+Almost every software company follows a workflow similar to this:
+
+```text
+main
+   │
+   ├── feature-login
+   │
+   ├── feature-dashboard
+   │
+   ├── bugfix-navbar
+   │
+   └── feature-payment
+```
+
+Each feature is developed on its own branch.
+
+---
+
+# Why Not Work on main?
+
+Suppose the `main` branch powers your production application.
+
+If a developer commits broken code directly to `main`:
+
+```text
+main
+
+↓
+
+Broken Code
+
+↓
+
+Production Failure
+```
+
+Everyone is affected.
+
+Instead:
+
+```
+main
+
+↓
+
+Stable
+
+↓
+
+Feature Branch
+
+↓
+
+Testing
+
+↓
+
+Review
+
+↓
+
+Merge
+```
+
+The production branch remains stable.
+
+---
+
+# Step 1 — Create a Feature Branch
+
+Start from the latest `main`:
+
+```bash
+git switch main
+git pull
+```
+
+Create a new branch:
+
+```bash
+git switch -c feature-login
+```
+
+You are now working independently.
+
+---
+
+# Step 2 — Develop
+
+Edit files.
+
+Commit regularly.
+
+Example:
+
+```bash
+git add .
+git commit -m "Create login page"
+```
+
+More work:
+
+```bash
+git commit -m "Add password validation"
+```
+
+More work:
+
+```bash
+git commit -m "Improve login UI"
+```
+
+Your branch now looks like:
+
+```text
+main
+
+↓
+
+A → B → C
+
+↓
+
+feature-login
+
+↓
+
+D → E → F
+```
+
+---
+
+# Step 3 — Push the Feature Branch
+
+Upload it.
+
+```bash
+git push -u origin feature-login
+```
+
+Notice:
+
+You are **not** pushing to `main`.
+
+You are pushing only your feature branch.
+
+GitHub now contains:
+
+```text
+main
+
+feature-login
+```
+
+---
+
+# Step 4 — Open a Pull Request
+
+This is where many beginners become confused.
+
+A Pull Request (PR) is **not** a Git command.
+
+A Pull Request is a **GitHub feature**.
+
+You are essentially saying:
+
+> "Please review my branch and merge it into `main`."
+
+Think of it as asking permission rather than performing the merge yourself.
+
+---
+
+# What Does a Pull Request Contain?
+
+A PR shows:
+
+- Changed files
+- Commit history
+- Line-by-line differences
+- Comments
+- Review status
+- Merge button
+
+Reviewers can inspect every change before accepting it.
+
+---
+
+# Step 5 — Code Review
+
+Another developer reviews your work.
+
+Possible comments:
+
+> Rename this variable.
+
+> Simplify this function.
+
+> Add unit tests.
+
+> Remove duplicate code.
+
+You update your branch:
+
+```bash
+git commit -m "Address review comments"
+git push
+```
+
+The Pull Request updates automatically.
+
+No new PR is needed.
+
+---
+
+# Step 6 — Merge
+
+After approval:
+
+Click **Merge Pull Request**.
+
+GitHub merges:
+
+```text
+feature-login
+
+↓
+
+main
+```
+
+Depending on repository settings, GitHub may:
+
+- Create a Merge Commit
+- Squash commits
+- Rebase before merging
+
+We'll discuss these merge strategies shortly.
+
+---
+
+# Step 7 — Delete the Feature Branch
+
+After merging:
+
+```bash
+git branch -d feature-login
+```
+
+GitHub also offers:
+
+> Delete Branch
+
+This keeps the repository clean.
+
+---
+
+# Complete Workflow
+
+```text
+main
+
+↓
+
+Create Feature Branch
+
+↓
+
+Develop
+
+↓
+
+Commit
+
+↓
+
+Push
+
+↓
+
+Pull Request
+
+↓
+
+Code Review
+
+↓
+
+Merge
+
+↓
+
+Delete Feature Branch
+```
+
+This is the workflow used by most software teams.
+
+---
+
+# Protected Branches
+
+Many repositories protect the `main` branch.
+
+Developers cannot:
+
+- Push directly
+- Force push
+- Delete the branch
+
+Instead:
+
+```
+Feature Branch
+
+↓
+
+Pull Request
+
+↓
+
+Approval
+
+↓
+
+Merge
+```
+
+This prevents accidental changes to production code.
+
+---
+
+# What is a Fork?
+
+Suppose you want to contribute to an open-source project.
+
+You usually do **not** have permission to push directly.
+
+Instead:
+
+```text
+Original Repository
+
+↓
+
+Fork
+
+↓
+
+Your Repository
+
+↓
+
+Feature Branch
+
+↓
+
+Pull Request
+
+↓
+
+Original Repository
+```
+
+A fork is your personal copy of someone else's repository.
+
+---
+
+# Origin vs Upstream
+
+In a fork-based workflow:
+
+```text
+Original Repository
+        │
+        ▼
+     upstream
+
+Your Repository
+        │
+        ▼
+      origin
+```
+
+Typical workflow:
+
+```bash
+git remote -v
+```
+
+Output:
+
+```text
+origin
+
+https://github.com/yourname/project.git
+
+upstream
+
+https://github.com/original/project.git
+```
+
+You push to `origin`.
+
+You fetch updates from `upstream`.
+
+---
+
+# Merge Strategies
+
+GitHub provides three common merge strategies.
+
+---
+
+## 1. Merge Commit
+
+```text
+          D → E
+         /      \
+A → B → C        M
+```
+
+Preserves complete history.
+
+---
+
+## 2. Squash Merge
+
+```text
+D
+
+E
+
+F
+```
+
+becomes
+
+```text
+S
+```
+
+One clean commit.
+
+Very popular.
+
+---
+
+## 3. Rebase Merge
+
+```text
+A → B → C → D' → E'
+```
+
+Produces a linear history.
+
+No Merge Commit.
+
+---
+
+# GitHub Flow
+
+Small teams often use GitHub Flow.
+
+```text
+main
+
+↓
+
+Feature Branch
+
+↓
+
+Pull Request
+
+↓
+
+Review
+
+↓
+
+Merge
+```
+
+Simple.
+
+Effective.
+
+Widely used.
+
+---
+
+# Git Flow
+
+Large organizations sometimes use Git Flow.
+
+```text
+main
+
+↓
+
+develop
+
+↓
+
+feature
+
+↓
+
+release
+
+↓
+
+hotfix
+```
+
+Much more structured.
+
+Suitable for large enterprise projects.
+
+---
+
+# Which Should You Learn?
+
+Today,
+
+GitHub Flow is the most common workflow for:
+
+- Startups
+- SaaS companies
+- AI companies
+- Open-source projects
+
+Git Flow still appears in some enterprise environments.
+
+---
+
+# Real Example
+
+Imagine you're working on **ResearchMind AI**.
+
+Create:
+
+```bash
+git switch -c feature-document-upload
+```
+
+Develop.
+
+Commit.
+
+Push.
+
+Open a Pull Request.
+
+Receive feedback.
+
+Update the branch.
+
+Merge into `main`.
+
+Delete the branch.
+
+Exactly the workflow you'll use in professional development.
+
+---
+
+# Best Practices
+
+✔ Keep Pull Requests small.
+
+✔ Write meaningful commit messages.
+
+✔ Use descriptive branch names.
+
+✔ Review code carefully.
+
+✔ Never bypass code review.
+
+✔ Delete merged branches.
+
+✔ Keep `main` deployable.
+
+---
+
+# Common Mistakes
+
+❌ Developing directly on `main`.
+
+❌ Creating huge Pull Requests.
+
+❌ Ignoring review comments.
+
+❌ Force pushing to shared branches.
+
+❌ Merging without testing.
+
+---
+
+# Exercise
+
+Using one of your GitHub repositories:
+
+1. Create a branch:
+
+```bash
+git switch -c feature-demo
+```
+
+2. Make two commits.
+
+3. Push:
+
+```bash
+git push -u origin feature-demo
+```
+
+4. Open a Pull Request on GitHub.
+
+5. Review the "Files changed" tab.
+
+6. Merge the Pull Request.
+
+7. Delete the feature branch locally:
+
+```bash
+git branch -d feature-demo
+```
+
+8. Delete the remote branch:
+
+```bash
+git push origin --delete feature-demo
+```
+
+Observe the complete professional workflow.
+
+---
+
+
+# Key Takeaways
+
+- Professional teams work on feature branches.
+- A Pull Request is a GitHub collaboration mechanism—not a Git command.
+- Code reviews improve quality before merging.
+- Protected branches safeguard production code.
+- Forks enable contributions to repositories you don't own.
+- GitHub Flow is the most common workflow for modern software teams.
+
+---
+
+# Summary
+
+GitHub extends Git by providing collaboration tools such as Pull Requests, code reviews, branch protection, and repository hosting.
+
+A professional workflow emphasizes isolation of changes, peer review, and controlled integration into the main branch, ensuring code quality and maintainability.
+
+Mastering this workflow prepares you to contribute effectively to team projects and open-source software.
+
+---
+
+
 
 
 
