@@ -1,0 +1,6070 @@
+# Contents
+
+1. [useEffect(): Managing Side Effects](#1--useeffect-managing-side-effects)
+2. [Understanding Dependency Arrays](#2--understanding-dependency-arrays)
+3. [Fetching Data with useEffect()](#3--fetching-data-with-useeffect)
+4. [Cleanup Functions & Preventing Memory Leaks](#4--cleanup-functions--preventing-memory-leaks)
+5. [useRef()](#5--useref)
+6. [useMemo()](#6--usememo)
+7. [React.memo() & useCallback()](#7--reactmemo--usecallback)
+8. [Context API](#8--context-api)
+9. [Custom Hooks](#9--custom-hooks)
+
+
+
+# 1 – useEffect(): Managing Side Effects
+
+---
+
+# 🎯 Objectives
+
+- What is a Side Effect?
+- Why useEffect() exists
+- The three forms of useEffect()
+- Dependency Arrays
+- Component Lifecycle
+- Cleanup Functions
+- Fetching API Data
+- Infinite Loop Problems
+- Best Practices
+
+---
+
+# Introduction
+
+So far, our components have only done one job.
+
+```
+State
+
+↓
+
+JSX
+
+↓
+
+Screen
+```
+
+Everything happened inside React.
+
+But real applications need to interact with the outside world.
+
+Examples
+
+```
+API Calls
+
+Timers
+
+Browser Events
+
+WebSockets
+
+Local Storage
+
+Document Title
+```
+
+These are called
+
+```
+Side Effects
+```
+
+---
+
+# What is a Side Effect?
+
+A Side Effect is anything that affects something outside the React component.
+
+Examples
+
+✅ Fetching users
+
+✅ Saving data
+
+✅ Starting a timer
+
+✅ Reading Local Storage
+
+✅ Changing page title
+
+---
+
+Not Side Effects
+
+```
+Rendering JSX
+
+Calculating 10+20
+
+Displaying Variables
+```
+
+These stay inside React.
+
+---
+
+# Why Can't We Do This?
+
+Suppose
+
+```jsx
+function App(){
+
+    fetch("/users");
+
+    return(
+
+        <h1>Hello</h1>
+
+    );
+
+}
+```
+
+Looks fine.
+
+Actually it's terrible.
+
+---
+
+Why?
+
+Remember every state update causes
+
+```
+App()
+```
+
+to execute again.
+
+Every render
+
+↓
+
+calls
+
+```
+fetch()
+```
+
+again.
+
+---
+
+Visual
+
+```
+Render
+
+↓
+
+fetch()
+
+↓
+
+State Update
+
+↓
+
+Render Again
+
+↓
+
+fetch()
+
+↓
+
+Render Again
+
+↓
+
+fetch()
+
+↓
+
+Infinite Requests
+```
+
+Not good.
+
+---
+
+# React's Solution
+
+React says
+
+```
+Render UI
+
+FIRST
+
+↓
+
+After Rendering
+
+↓
+
+Run Side Effects
+```
+
+That is exactly what
+
+```
+useEffect()
+```
+
+does.
+
+---
+
+# Basic Syntax
+
+```jsx
+import { useEffect} from "react";
+
+useEffect(()=>{
+       console.log("Effect");
+       }
+);
+```
+
+---
+
+# Anatomy
+
+```jsx
+useEffect( callback, dependencies );
+```
+
+It takes two arguments.
+
+```
+Function
+
++
+
+Dependency Array
+```
+
+---
+
+# Form 1
+
+## No Dependency Array
+
+```jsx
+useEffect(()=>{
+
+        console.log("Runs");
+
+    }
+
+);
+```
+
+Runs
+
+```
+After Every Render
+```
+
+---
+
+Visual
+
+```
+Mount
+
+↓
+
+Effect
+
+↓
+
+Update
+
+↓
+
+Effect
+
+↓
+
+Update
+
+↓
+
+Effect
+```
+
+---
+
+# Form 2
+
+## Empty Dependency Array
+
+```jsx
+useEffect(
+
+    ()=>{
+
+        console.log( "Runs Once" );
+
+    }, []
+
+);
+```
+
+Runs
+
+```
+ONLY
+
+After Mounting
+```
+
+---
+
+Visual
+
+```
+Mount
+
+↓
+
+Effect
+
+↓
+
+Update
+
+↓
+
+No Effect
+
+↓
+
+Update
+
+↓
+
+No Effect
+```
+
+Very common for API calls.
+
+---
+
+# Form 3
+
+## Dependency Array
+
+```jsx
+useEffect(
+
+    ()=>{
+
+        console.log(count);
+
+    }, [count]
+
+);
+```
+
+Runs
+
+```
+Mount
+
+↓
+
+count Changes
+```
+
+Only.
+
+---
+
+Visual
+
+```
+count
+
+↓
+
+Changed?
+
+↓
+
+Yes
+
+↓
+
+Run Effect
+
+↓
+
+No
+
+↓
+
+Skip
+```
+
+---
+
+# Real Example
+
+```jsx
+const [count, setCount]=useState(0);
+
+useEffect(()=>{
+
+        console.log("Count Changed");
+
+    },[count]
+);
+```
+
+Click
+
+```
++
+```
+
+↓
+
+Effect runs.
+
+---
+
+# Why Dependency Array?
+
+Imagine
+
+```
+Name
+
+Age
+
+Theme
+```
+
+Only Age changes.
+
+Should React run a fetch for Name?
+
+No.
+
+Dependencies tell React exactly when to run.
+
+---
+
+# API Example
+
+```jsx
+useEffect(()=>{
+
+    fetch("/users")
+
+    .then(response=> response.json())
+
+    .then( data=>console.log(data));
+
+    },[]
+
+);
+```
+
+Runs only once.
+
+Perfect.
+
+---
+
+# Async Problem
+
+Many beginners write
+
+```jsx 
+useEffect(async ()=>{
+
+    }
+
+);
+```
+
+Wrong.
+
+---
+
+Instead
+
+```jsx
+useEffect(()=>{
+
+    async function load(){
+
+    }
+
+    load();
+
+    },[]
+);
+```
+
+We'll discuss why later.
+
+---
+
+# Cleanup Function
+
+Suppose you start a timer.
+
+```jsx
+useEffect( ()=>{
+
+    const id= setInterval( ()=>{
+
+        console.log("Tick");
+
+    }, 1000
+
+);
+
+return ()=>{ 
+    clearInterval(id);
+    };
+
+}, []
+
+);
+```
+
+---
+
+Why Cleanup?
+
+Imagine opening and closing a page.
+
+Without cleanup
+
+```
+Timer
+
+↓
+
+Still Running
+
+↓
+
+Memory Leak
+```
+
+---
+
+Visual
+
+```
+Mount
+
+↓
+
+Start Timer
+
+↓
+
+Unmount
+
+↓
+
+Stop Timer
+```
+
+---
+
+# Window Event Example
+
+```jsx
+useEffect( ()=>{
+
+window.addEventListener( "resize", handleResize);
+
+return ()=>{
+
+window.removeEventListener( "resize", handleResize);
+
+    };
+
+}, []
+);
+```
+
+Always remove listeners.
+
+---
+
+# Infinite Loop
+
+Suppose
+
+```jsx
+const [
+
+count,
+
+setCount
+
+]=useState(0);
+
+useEffect(
+
+()=>{
+
+setCount(
+
+count+1
+
+);
+
+}
+
+);
+```
+
+Disaster.
+
+---
+
+Visual
+
+```
+Render
+
+↓
+
+Effect
+
+↓
+
+setCount
+
+↓
+
+Render
+
+↓
+
+Effect
+
+↓
+
+setCount
+
+↓
+
+Forever
+```
+
+---
+
+# Correct
+
+```jsx
+useEffect(
+
+()=>{
+
+setCount(
+
+1
+
+);
+
+},
+
+[]
+);
+```
+
+Runs once.
+
+---
+
+# React Lifecycle
+
+Remember
+
+```
+Mount
+
+↓
+
+Update
+
+↓
+
+Unmount
+```
+
+Now
+
+```
+Mount
+
+↓
+
+Effect
+
+↓
+
+Update
+
+↓
+
+Effect
+
+↓
+
+Unmount
+
+↓
+
+Cleanup
+```
+
+Everything fits together.
+
+---
+
+# Real myWebsite Example
+
+User opens Chat Page.
+
+```
+Mount
+
+↓
+
+Fetch Chat History
+
+↓
+
+Display Messages
+
+↓
+
+User Leaves
+
+↓
+
+Close WebSocket
+```
+
+Exactly what useEffect does.
+
+---
+
+# Common Mistakes
+
+❌ Calling fetch() inside component without useEffect.
+
+---
+
+❌ Missing dependency array.
+
+---
+
+❌ Ignoring cleanup.
+
+---
+
+❌ Using async directly inside useEffect.
+
+---
+
+# Best Practices
+
+✅ Fetch data inside useEffect.
+
+---
+
+✅ Always think about dependencies.
+
+---
+
+✅ Clean up timers, listeners, WebSockets.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+```jsx
+function App(){
+
+    useEffect(()=>{
+
+        console.log(
+
+            "Mounted"
+
+        );
+
+    },[]);
+
+    return(
+
+        <h1>
+
+            Hello
+
+        </h1>
+
+    );
+
+}
+```
+
+Observe the console.
+
+---
+
+Now add
+
+```jsx
+const [
+
+count,
+
+setCount
+
+]=useState(0);
+
+useEffect(
+
+()=>{
+
+console.log(
+
+count
+
+);
+
+},
+
+[count]
+
+);
+```
+
+Click Increment.
+
+Observe the effect runs only when count changes.
+
+---
+
+# Interview Questions
+
+### Q1 
+
+What is a Side Effect?
+
+---
+
+### Q2
+
+Why does React provide useEffect()?
+
+---
+
+### Q3
+
+Difference between
+
+```
+useEffect(...)
+
+useEffect(...,[])
+
+useEffect(...,[count])
+```
+
+---
+
+### Q4
+
+Why is cleanup necessary?
+
+---
+
+### Q5
+
+What causes an infinite loop in useEffect?
+
+---
+
+# Key Takeaways
+
+- `useEffect()` is used for side effects such as API calls, timers, subscriptions, and browser interactions.
+- Without a dependency array, the effect runs after every render.
+- An empty dependency array (`[]`) runs the effect only after the initial mount.
+- A dependency array like `[count]` runs the effect after mount and whenever `count` changes.
+- Cleanup functions prevent memory leaks by removing timers, event listeners, or subscriptions when a component unmounts or before the effect re-runs.
+
+---
+
+# Summary
+
+`useEffect()` allows React components to safely perform work outside the rendering process.
+
+It runs after React updates the UI and provides fine-grained control over when effects execute through dependency arrays. By understanding dependencies and cleanup functions, you can build efficient applications that fetch data, manage timers, subscribe to events, and interact with external systems without introducing bugs or performance problems.
+
+---
+
+
+# 2 – Understanding Dependency Arrays
+
+# 🎯 Objectives
+
+- What the dependency array does
+- How React decides to run an effect
+- Primitive vs Object comparison
+- Functions as dependencies
+- Stale Closures
+- Infinite loops
+- ESLint dependency warnings
+- Best practices
+
+---
+
+# Introduction
+
+Consider this code.
+
+```jsx
+useEffect(() => {
+
+    console.log("Hello");
+
+}, []);
+```
+
+Why does it run only once?
+
+Why not every render?
+
+The answer lies in
+
+```
+Dependency Arrays
+```
+
+---
+
+# React's Question
+
+Every time your component renders,
+
+React asks
+
+```
+Did any dependency change?
+```
+
+If the answer is
+
+```
+Yes
+```
+
+↓
+
+Run the effect.
+
+Otherwise
+
+↓
+
+Skip it.
+
+---
+
+# Three Forms
+
+## Form 1
+
+```jsx
+useEffect(() => {
+
+    console.log("Runs");
+
+});
+```
+
+Runs
+
+```
+Every Render
+```
+
+---
+
+## Form 2
+
+```jsx
+useEffect(() => {
+
+    console.log("Runs");
+
+}, []);
+```
+
+Runs
+
+```
+Only Once
+```
+
+(after mounting)
+
+---
+
+## Form 3
+
+```jsx
+useEffect(() => {
+
+    console.log(count);
+
+}, [count]);
+```
+
+Runs
+
+```
+Mount
+
+↓
+
+Whenever count changes
+```
+
+---
+
+# Example
+
+```jsx
+const [count, setCount] = useState(0);
+const [name, setName] = useState("Utpal");
+
+useEffect(() => {
+
+    console.log("Effect");
+
+}, [count]);
+```
+
+Suppose
+
+```
+count changes
+```
+
+Effect runs.
+
+---
+
+Suppose
+
+```
+name changes
+```
+
+Effect does NOT run.
+
+Because
+
+```
+name
+
+is not
+
+a dependency.
+```
+
+---
+
+# Visual
+
+```
+Dependencies
+
+↓
+
+[count]
+
+↓
+
+count changed?
+
+↓
+
+YES
+
+↓
+
+Run Effect
+
+↓
+
+NO
+
+↓
+
+Skip
+```
+
+---
+
+# How React Compares Dependencies
+
+React compares
+
+the previous dependency
+
+with
+
+the new dependency.
+
+Think of it like
+
+```javascript
+oldValue === newValue
+```
+
+If the values are equal,
+
+the effect is skipped.
+
+If they are different,
+
+the effect runs.
+
+---
+
+# Primitive Values
+
+Example
+
+```jsx
+const [count, setCount] = useState(0);
+```
+
+Previous
+
+```
+0
+```
+
+New
+
+```
+1
+```
+
+React sees
+
+```
+0 !== 1
+```
+
+↓
+
+Run effect.
+
+---
+
+# Objects
+
+Now consider
+
+```jsx
+const user = {
+
+    name: "Utpal"
+
+};
+```
+
+Even if the contents look identical,
+
+creating a new object means
+
+```javascript
+{} !== {}
+```
+
+because they are different object references.
+
+---
+
+# Example
+
+```jsx
+const user = {
+
+    name: "Utpal"
+
+};
+
+useEffect(() => {
+
+    console.log("User changed");
+
+}, [user]);
+```
+
+Every render
+
+creates
+
+a new object.
+
+React thinks
+
+```
+New Object
+
+↓
+
+Changed
+```
+
+So
+
+the effect runs every render.
+
+---
+
+# Arrays
+
+Exactly the same.
+
+```jsx
+const numbers = [1,2,3];
+```
+
+Each render
+
+creates
+
+a new array.
+
+React sees
+
+```
+New Array
+
+↓
+
+Changed
+```
+
+Effect runs again.
+
+---
+
+# Functions
+
+Functions are objects too.
+
+```jsx
+function greet(){
+
+}
+```
+
+Every render
+
+creates
+
+a new function object.
+
+Therefore
+
+```jsx
+useEffect(() => {
+
+}, [greet]);
+```
+
+runs every render.
+
+Later
+
+we'll solve this using
+
+```
+useCallback()
+```
+
+---
+
+# Infinite Loop Example
+
+```jsx
+const [count, setCount] = useState(0);
+
+useEffect(() => {
+
+    setCount(count + 1);
+
+}, [count]);
+```
+
+What happens?
+
+```
+count changes
+
+↓
+
+Effect runs
+
+↓
+
+setCount()
+
+↓
+
+Render
+
+↓
+
+count changes
+
+↓
+
+Effect runs
+
+↓
+
+Forever
+```
+
+Infinite loop.
+
+---
+
+# Correct Version
+
+Suppose
+
+you want
+
+to initialize count.
+
+```jsx
+useEffect(() => {
+
+    setCount(10);
+
+}, []);
+```
+
+Runs
+
+only once.
+
+---
+
+# Stale Closures
+
+Consider
+
+```jsx
+const [count, setCount] = useState(0);
+
+useEffect(() => {
+
+    console.log(count);
+
+}, []);
+```
+
+Question
+
+Will it print
+
+updated values?
+
+No.
+
+It always sees
+
+the value from
+
+the first render.
+
+This is called
+
+```
+Stale Closure
+```
+
+---
+
+# Why?
+ 
+Because the effect never runs again.
+
+It "captures" the variables from the initial render.
+
+---
+
+# Fix
+
+```jsx
+useEffect(() => {
+
+    console.log(count);
+
+}, [count]);
+```
+
+Now
+
+the effect
+
+receives
+
+the latest value.
+
+---
+
+# ESLint Warning
+
+Suppose
+
+```jsx
+useEffect(() => {
+
+    console.log(count);
+
+}, []);
+```
+
+Many React projects
+
+show
+
+```
+React Hook useEffect
+
+has a missing dependency
+
+'count'
+```
+
+This warning exists because
+
+the effect uses `count`
+
+but React won't re-run it when `count` changes.
+
+---
+
+# Should You Ignore It?
+
+Usually No.
+
+The warning often points to a real bug.
+
+Sometimes you intentionally want the first value only, but that should be a deliberate choice.
+
+---
+
+# Real Example
+
+ResearchMind AI
+
+```text
+Open Chat
+
+↓
+
+Fetch Chat History
+
+↓
+
+Display Messages
+```
+
+Correct
+
+```jsx
+useEffect(() => {
+
+    fetchChats();
+
+}, []);
+```
+
+Runs once.
+
+---
+
+Now suppose
+
+conversation ID changes.
+
+```text
+Conversation A
+
+↓
+
+Conversation B
+```
+
+We should fetch again.
+
+```jsx
+useEffect(() => {
+
+    fetchChats();
+
+}, [conversationId]);
+```
+
+Now changing the conversation loads the correct messages.
+
+---
+
+# Best Practices
+
+✅ Include every value that the effect uses unless you intentionally want otherwise.
+
+---
+
+✅ Keep dependency arrays small and meaningful.
+
+---
+
+✅ Don't put newly created objects or functions directly into dependency arrays unless you understand their behavior.
+
+---
+
+# Common Mistakes
+
+❌
+
+Missing dependencies.
+
+---
+
+❌
+
+Adding objects that change every render.
+
+---
+
+❌
+
+Calling setState() inside an effect that depends on that same state without a stopping condition.
+
+---
+
+# Hands-on Exercise
+
+Experiment with these three versions.
+
+### Version 1
+
+```jsx
+useEffect(() => {
+
+    console.log("Runs");
+
+});
+```
+
+Observe
+
+every render.
+
+---
+
+### Version 2
+
+```jsx
+useEffect(() => {
+
+    console.log("Runs");
+
+}, []);
+```
+
+Observe only the first render.
+
+---
+
+### Version 3
+
+```jsx
+useEffect(() => {
+
+    console.log(count);
+
+}, [count]);
+```
+
+Observe it runs only when `count` changes.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What does the dependency array control?
+
+---
+
+### Q2
+
+Why does `[]` run only once?
+
+---
+
+### Q3
+
+Why do objects often cause effects to run repeatedly?
+
+---
+
+### Q4
+
+What is a stale closure?
+
+---
+
+### Q5
+
+What causes an infinite loop in `useEffect()`?
+
+---
+
+# Key Takeaways
+
+- React checks dependency values after every render.
+- Primitive values are compared by value.
+- Objects, arrays, and functions are compared by reference.
+- Missing dependencies can lead to stale data.
+- Incorrect dependencies can lead to infinite loops.
+
+---
+
+# Summary
+
+The dependency array is React's way of deciding when a side effect should run.
+
+Understanding how React compares dependencies is essential for writing correct, efficient `useEffect()` logic. Most bugs involving effects are not caused by `useEffect()` itself, but by incorrect dependency arrays.
+
+---
+
+# 3 – Fetching Data with useEffect()
+
+---
+
+# 🎯 Learning Objectives
+
+By the end of this lesson, you will understand:
+
+- How to fetch data from an API
+- Why API calls belong inside `useEffect()`
+- How to use `async/await` with `useEffect()`
+- Loading state
+- Error state
+- Rendering fetched data
+- How to connect to a FastAPI backend
+
+---
+
+# The Problem
+
+Suppose you want to display GitHub user information.
+
+Where should the API call go?
+
+❌ Wrong
+
+```jsx
+function App() {
+
+    const response = await fetch(...);
+
+    return <div>Hello</div>;
+
+}
+```
+
+Problems:
+
+- `await` can't be used directly here.
+- The component function would execute on every render.
+- Multiple unnecessary requests would be made.
+
+---
+
+# Correct Flow
+
+```text
+Component Mounts
+        │
+        ▼
+Render Initial UI
+        │
+        ▼
+useEffect Runs
+        │
+        ▼
+Fetch Data
+        │
+        ▼
+Update State
+        │
+        ▼
+Component Re-renders
+        │
+        ▼
+Display Data
+```
+
+---
+
+# Step 1 — Create State
+
+```jsx
+const [user, setUser] = useState(null);
+```
+
+Initially
+
+```
+user = null
+```
+
+---
+
+# Step 2 — Loading State
+
+```jsx
+const [loading, setLoading] = useState(true);
+```
+
+Initially
+
+```
+loading = true
+```
+
+---
+
+# Step 3 — Error State
+
+```jsx
+const [error, setError] = useState(null);
+```
+
+Initially
+
+```
+error = null
+```
+
+---
+
+# Step 4 — Fetch Data
+
+```jsx
+useEffect(() => {
+
+    async function fetchUser() {
+
+        try {
+
+            const response = await fetch(
+                "https://api.github.com/users/octocat"
+            );
+
+            const data = await response.json();
+
+            setUser(data);
+
+        }
+
+        catch (err) {
+
+            setError(err.message);
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    }
+
+    fetchUser();
+
+}, []);
+```
+
+Notice
+
+The async function is **inside** `useEffect()`.
+
+---
+
+# Why Not This?
+
+```jsx
+useEffect(async () => {
+
+});
+```
+
+React expects the callback to return either:
+
+- nothing (`undefined`)
+- or a cleanup function.
+
+An `async` function always returns a Promise.
+
+That's why React recommends wrapping async logic inside the effect instead of making the effect callback itself async.
+
+---
+
+# Rendering
+
+```jsx
+if (loading) {
+
+    return <h2>Loading...</h2>;
+
+}
+
+if (error) {
+
+    return <h2>{error}</h2>;
+
+}
+
+return (
+
+    <div>
+
+        <h1>{user.name}</h1>
+
+    </div>
+
+);
+```
+
+---
+
+# Complete Example
+
+```jsx
+import { useEffect, useState } from "react";
+
+function App() {
+
+    const [user, setUser] = useState(null);
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+
+        async function fetchUser() {
+
+            try {
+
+                const response = await fetch(
+                    "https://api.github.com/users/octocat"
+                );
+
+                if (!response.ok) {
+
+                    throw new Error("Request failed");
+
+                }
+
+                const data = await response.json();
+
+                setUser(data);
+
+            }
+
+            catch (err) {
+
+                setError(err.message);
+
+            }
+
+            finally {
+
+                setLoading(false);
+
+            }
+
+        }
+
+        fetchUser();
+
+    }, []);
+
+    if (loading) {
+
+        return <h2>Loading...</h2>;
+
+    }
+
+    if (error) {
+
+        return <h2>{error}</h2>;
+
+    }
+
+    return (
+
+        <div>
+
+            <img
+                src={user.avatar_url}
+                alt={user.login}
+                width="150"
+            />
+
+            <h2>{user.name}</h2>
+
+            <p>{user.bio}</p>
+
+        </div>
+
+    );
+
+}
+
+export default App;
+```
+
+---
+
+# What Happens Internally?
+
+```text
+App Mounts
+      │
+      ▼
+loading = true
+user = null
+      │
+      ▼
+Loading... appears
+      │
+      ▼
+useEffect runs
+      │
+      ▼
+fetch()
+      │
+      ▼
+Server responds
+      │
+      ▼
+setUser(data)
+setLoading(false)
+      │
+      ▼
+React re-renders
+      │
+      ▼
+User information appears
+```
+
+---
+
+# Why Three States?
+
+Instead of trying to handle everything with one variable, we separate concerns.
+
+```text
+user
+
+↓
+
+Stores data
+```
+
+```text
+loading
+
+↓
+
+Shows spinner/message
+```
+
+```text
+error
+
+↓
+
+Displays failures
+```
+
+This makes the UI predictable and easy to understand.
+
+---
+
+# Connecting to FastAPI
+
+Suppose your backend is running on
+
+```text
+http://localhost:8000
+```
+
+and exposes
+
+```text
+GET /users
+```
+
+Then the fetch call becomes
+
+```jsx
+const response = await fetch(
+    "http://localhost:8000/users"
+);
+```
+
+Everything else remains the same.
+
+React doesn't care whether the API is GitHub, Weather API, or your own FastAPI service—as long as it returns JSON.
+
+---
+
+# Common Mistakes
+
+❌ Calling `fetch()` directly in the component body.
+
+❌ Forgetting to handle loading.
+
+❌ Forgetting to handle errors.
+
+❌ Assuming every response is successful.
+
+Always check:
+
+```jsx
+if (!response.ok) {
+
+    throw new Error("Request failed");
+
+}
+```
+
+---
+
+# Best Practices
+
+✅ Use `try/catch`.
+
+✅ Use `async/await`.
+
+✅ Show loading indicators.
+
+✅ Handle errors gracefully.
+
+✅ Keep API calls inside `useEffect()` when they should happen after rendering.
+
+---
+
+# Hands-on Exercise
+
+Build a GitHub User Viewer.
+
+Requirements:
+
+- Input field for username.
+- Button labeled "Search".
+- Fetch user details from GitHub.
+- Display:
+  - Avatar
+  - Name
+  - Bio
+  - Followers
+  - Following
+- Show a loading message while fetching.
+- Show an error message if the user is not found.
+
+This project combines:
+
+- `useState`
+- `useEffect`
+- Forms
+- Conditional rendering
+- API fetching
+
+---
+
+# Interview Questions
+
+### Q1
+
+Why should API calls usually be placed inside `useEffect()`?
+
+---
+
+### Q2
+
+Why shouldn't the `useEffect` callback itself be `async`?
+
+---
+
+### Q3
+
+Why maintain separate loading and error states?
+
+---
+
+### Q4
+
+What happens after calling `setUser(data)`?
+
+---
+
+### Q5
+
+Why should you check `response.ok`?
+
+---
+
+# Key Takeaways
+
+- API calls are side effects and usually belong in `useEffect()`.
+- Wrap asynchronous logic inside a function declared within the effect.
+- Use separate state variables for data, loading, and errors.
+- Updating state after a successful fetch causes React to re-render the component.
+- The same pattern works for third-party APIs and your own backend services.
+
+---
+
+# Summary
+
+Fetching data in React follows a consistent pattern: render an initial UI, run a side effect with `useEffect()`, retrieve data asynchronously, update component state, and let React re-render the interface. Mastering this pattern prepares you to connect React applications to any REST API, including your FastAPI backend.
+
+---
+
+# 4 – Cleanup Functions & Preventing Memory Leaks
+
+---
+
+# 🎯 Learning Objectives
+
+By the end of this lesson, you will understand:
+
+- What a cleanup function is
+- When React calls cleanup
+- Cleaning up timers
+- Cleaning up event listeners
+- Aborting API requests
+- Cleaning up WebSocket connections
+- Preventing memory leaks
+
+---
+
+# Introduction
+
+Imagine opening a page that starts a timer.
+
+```jsx
+setInterval(() => {
+
+    console.log("Running...");
+
+}, 1000);
+```
+
+Now you navigate away from the page.
+
+Question:
+
+Does the timer automatically stop?
+
+No.
+
+Unless you stop it yourself, it keeps running.
+
+That's why React provides cleanup functions.
+
+---
+
+# What is a Cleanup Function?
+
+A cleanup function is simply a function returned from `useEffect()`.
+
+```jsx
+useEffect(() => {
+
+    // setup work
+
+    return () => {
+
+        // cleanup work
+
+    };
+
+}, []);
+```
+
+The returned function tells React how to clean up the resources created by the effect.
+
+---
+
+# When Does Cleanup Run?
+
+Cleanup runs in two situations:
+
+1. Before the effect runs again (if dependencies changed)
+2. When the component unmounts
+
+---
+
+# Visual
+
+```text
+Mount
+    │
+    ▼
+Run Effect
+    │
+    ▼
+User Changes Dependency
+    │
+    ▼
+Cleanup Previous Effect
+    │
+    ▼
+Run New Effect
+    │
+    ▼
+Component Unmounts
+    │
+    ▼
+Final Cleanup
+```
+
+---
+
+# Example 1 — Timer
+
+Without cleanup
+
+```jsx
+useEffect(() => {
+
+    setInterval(() => {
+
+        console.log("Tick");
+
+    }, 1000);
+
+}, []);
+```
+
+Problem
+
+The timer continues forever.
+
+---
+
+Correct
+
+```jsx
+useEffect(() => {
+
+    const id = setInterval(() => {
+
+        console.log("Tick");
+
+    }, 1000);
+
+    return () => {
+
+        clearInterval(id);
+
+    };
+
+}, []);
+```
+
+---
+
+Visual
+
+```text
+Mount
+
+↓
+
+Start Timer
+
+↓
+
+User Leaves Page
+
+↓
+
+clearInterval()
+
+↓
+
+Timer Stops
+```
+
+---
+
+# Example 2 — Event Listener
+
+Suppose
+
+```jsx
+window.addEventListener(
+    "resize",
+    handleResize
+);
+```
+
+If you don't remove it,
+
+each mount adds another listener.
+
+Eventually
+
+```
+Resize
+
+↓
+
+handleResize()
+
+↓
+
+handleResize()
+
+↓
+
+handleResize()
+```
+
+The same event fires multiple times.
+
+---
+
+Correct
+
+```jsx
+useEffect(() => {
+
+    window.addEventListener(
+        "resize",
+        handleResize
+    );
+
+    return () => {
+
+        window.removeEventListener(
+            "resize",
+            handleResize
+        );
+
+    };
+
+}, []);
+```
+
+---
+
+# Example 3 — Fetch Requests
+
+Suppose
+
+the user opens a page
+
+and immediately leaves it.
+
+The request may still finish.
+
+If it tries to update state
+
+after the component has gone,
+
+that work is unnecessary.
+
+One common solution is using an `AbortController`.
+
+```jsx
+useEffect(() => {
+
+    const controller = new AbortController();
+
+    async function load() {
+
+        try {
+
+            const response = await fetch(
+                "/users",
+                {
+                    signal: controller.signal
+                }
+            );
+
+            const data = await response.json();
+
+            setUsers(data);
+
+        }
+
+        catch (err) {
+
+            if (err.name !== "AbortError") {
+
+                console.error(err);
+
+            }
+
+        }
+
+    }
+
+    load();
+
+    return () => {
+
+        controller.abort();
+
+    };
+
+}, []);
+```
+
+---
+
+# Example 4 — WebSocket
+
+Imagine your ResearchMind AI chat.
+
+When the page opens
+
+```
+Connect WebSocket
+```
+
+When the page closes
+
+```
+Disconnect WebSocket
+```
+
+```jsx
+useEffect(() => {
+
+    const socket = new WebSocket(url);
+
+    return () => {
+
+        socket.close();
+
+    };
+
+}, []);
+```
+
+---
+
+# Why Cleanup Matters
+
+Without cleanup
+
+```text
+Open Page
+
+↓
+
+Timer Running
+
+↓
+
+Close Page
+
+↓
+
+Timer Still Running
+```
+
+After opening and closing the page five times
+
+```text
+Timer 1
+
+Timer 2
+
+Timer 3
+
+Timer 4
+
+Timer 5
+```
+
+All are running simultaneously.
+
+---
+
+# React Lifecycle with Cleanup
+
+```text
+Mount
+
+↓
+
+Run Effect
+
+↓
+
+Update
+
+↓
+
+Cleanup Previous Effect
+
+↓
+
+Run New Effect
+
+↓
+
+Unmount
+
+↓
+
+Final Cleanup
+```
+
+Notice that cleanup happens **before** React runs the next version of the effect, not just when the component disappears.
+
+---
+
+# What Doesn't Need Cleanup?
+
+Some effects don't create ongoing resources.
+
+Example
+
+```jsx
+useEffect(() => {
+
+    document.title = "Dashboard";
+
+}, []);
+```
+
+Nothing needs to be cleaned up.
+
+Simply updating the document title doesn't create a timer, listener, or connection.
+
+---
+
+# Common Mistakes
+
+❌ Forgetting `clearInterval()`.
+
+❌ Forgetting `removeEventListener()`.
+
+❌ Leaving WebSockets open.
+
+❌ Ignoring request cancellation in long-running fetches.
+
+---
+
+# Best Practices
+
+✅ Clean up anything you create.
+
+✅ Always remove event listeners.
+
+✅ Stop timers.
+
+✅ Close sockets.
+
+✅ Abort fetches when appropriate.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+```jsx
+function Clock() {
+
+    useEffect(() => {
+
+        const id = setInterval(() => {
+
+            console.log("Tick");
+
+        }, 1000);
+
+        return () => {
+
+            clearInterval(id);
+
+        };
+
+    }, []);
+
+    return <h1>Clock</h1>;
+
+}
+```
+
+Now conditionally render it:
+
+```jsx
+{
+    showClock && <Clock />
+}
+```
+
+Toggle `showClock`.
+
+Observe that the timer stops when the component unmounts.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What is a cleanup function?
+
+---
+
+### Q2
+
+When does React execute cleanup?
+
+---
+
+### Q3
+
+Why should timers be cleared?
+
+---
+
+### Q4
+
+Why remove event listeners?
+
+---
+
+### Q5
+
+How can you cancel a fetch request?
+
+---
+
+# Key Takeaways
+
+- Cleanup functions are returned from `useEffect()`.
+- React runs cleanup before re-running an effect and when a component unmounts.
+- Timers, event listeners, WebSockets, and long-running requests should usually be cleaned up.
+- Proper cleanup prevents memory leaks and unnecessary work.
+
+---
+
+# Summary
+
+Cleanup functions are an essential part of writing reliable React applications. Whenever an effect creates something that continues running outside React—such as a timer, event listener, network connection, or subscription—you should usually provide a cleanup function to stop or remove it. This keeps your application efficient and prevents subtle bugs.
+
+---
+
+# 5 – useRef()
+
+---
+
+# 🎯 Objectives
+
+- What `useRef()` is
+- Why React provides `useRef()`
+- Accessing DOM elements
+- Persisting values across renders
+- Difference between `useState()` and `useRef()`
+- Common use cases
+- Best practices
+
+---
+
+# Introduction
+
+Suppose you have an input box.
+
+When the page loads,
+
+you want the cursor to automatically appear inside it.
+
+How can React directly access that HTML element?
+
+That's exactly what `useRef()` is for.
+
+---
+
+# What is useRef()?
+
+`useRef()` creates an object that survives across renders.
+
+```jsx
+const inputRef = useRef(null);
+```
+
+It returns
+
+```jsx
+{
+    current: null
+}
+```
+
+React keeps this object the same between renders.
+
+---
+
+# Visual
+
+```text
+Component
+
+↓
+
+useRef()
+
+↓
+
+{
+
+    current: ...
+
+}
+```
+
+Whenever React re-renders,
+
+the object stays the same.
+
+Only
+
+```
+current
+```
+
+can change.
+
+---
+
+# Basic Syntax
+
+```jsx
+import { useRef } from "react";
+
+const inputRef = useRef(null);
+```
+
+---
+
+# Connecting a Ref
+
+```jsx
+<input ref={inputRef} />
+```
+
+React stores
+
+the actual DOM element
+
+inside
+
+```jsx
+inputRef.current
+```
+
+---
+
+# Visual
+
+```text
+inputRef
+
+↓
+
+current
+
+↓
+
+<input>
+```
+
+---
+
+# Auto Focus Example
+
+```jsx
+import { useEffect, useRef } from "react";
+
+function App() {
+
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+
+        inputRef.current.focus();
+
+    }, []);
+
+    return (
+
+        <input
+
+            ref={inputRef}
+
+            placeholder="Enter name"
+
+        />
+
+    );
+
+}
+```
+
+---
+
+# What Happens?
+
+```
+Component Mounts
+
+↓
+
+React Creates Input
+
+↓
+
+Stores DOM Element
+
+↓
+
+inputRef.current
+
+↓
+
+useEffect()
+
+↓
+
+focus()
+
+↓
+
+Cursor Appears
+```
+
+---
+
+# Reading Input Value
+
+```jsx
+const inputRef = useRef(null);
+
+function handleClick(){
+
+    console.log(
+
+        inputRef.current.value
+
+    );
+
+}
+```
+
+React gives
+
+direct access
+
+to the DOM element.
+
+---
+
+# useState vs useRef
+
+Suppose
+
+```jsx
+const [count, setCount] = useState(0);
+```
+
+Updating
+
+```
+count
+```
+
+causes
+
+```
+Re-render
+```
+
+---
+
+Now
+
+```jsx
+const countRef = useRef(0);
+
+countRef.current++;
+```
+
+Updates
+
+```
+current
+```
+
+Only.
+
+No re-render occurs.
+
+---
+
+# Comparison
+
+| useState | useRef |
+|-----------|---------|
+| Stores state | Stores mutable value |
+| Causes re-render | Does NOT cause re-render |
+| Used for UI data | Used for values or DOM references |
+| React tracks changes | React ignores changes to `.current` |
+
+---
+
+# Example
+
+```jsx
+const countRef = useRef(0);
+
+function handleClick(){
+
+    countRef.current++;
+
+    console.log(
+
+        countRef.current
+
+    );
+
+}
+```
+
+The console changes
+
+```
+1
+
+2
+
+3
+```
+
+But
+
+the screen
+
+does not update.
+
+---
+
+# Why?
+
+React only re-renders
+
+when
+
+state
+
+or
+
+props
+
+change.
+
+Changing
+
+```jsx
+ref.current
+```
+
+doesn't tell React
+
+to render again.
+
+---
+
+# Persisting Values
+
+Suppose
+
+you want to count
+
+how many times
+
+the component rendered.
+
+```jsx
+const renderCount = useRef(0);
+
+renderCount.current++;
+
+console.log(renderCount.current);
+```
+
+The value persists
+
+between renders
+
+without creating
+
+another render.
+
+---
+
+# Real Example
+
+Imagine
+
+ResearchMind AI
+
+```text
+User Types Question
+
+↓
+
+Current Input Element
+
+↓
+
+Focus Input
+
+↓
+
+Continue Typing
+```
+
+The input element itself
+
+is a perfect use case
+
+for `useRef()`.
+
+---
+
+# Another Example
+
+Video Player
+
+```jsx
+const videoRef = useRef(null);
+
+function play(){
+
+    videoRef.current.play();
+
+}
+
+function pause(){
+
+    videoRef.current.pause();
+
+}
+```
+
+---
+
+# Common Mistakes
+
+❌
+
+Using `useRef`
+
+for UI state.
+
+Example
+
+```jsx
+ref.current = "Hello";
+```
+
+If the UI should display `"Hello"`,
+
+use `useState()` instead.
+
+---
+
+❌
+
+Reading
+
+`ref.current`
+
+before the element exists.
+
+Remember
+
+it is `null`
+
+until React mounts the element.
+
+---
+
+# Best Practices
+
+✅ Use refs for DOM elements.
+
+✅ Use refs for timers, IDs, or mutable values that don't affect rendering.
+
+✅ Use state for anything the user should see on the screen.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+```jsx
+function App(){
+
+    const inputRef = useRef(null);
+
+    function focusInput(){
+
+        inputRef.current.focus();
+
+    }
+
+    return(
+
+        <>
+
+            <input ref={inputRef} />
+
+            <button
+
+                onClick={focusInput}
+
+            >
+
+                Focus Input
+
+            </button>
+
+        </>
+
+    );
+
+}
+```
+
+Click the button.
+
+The cursor should move
+
+into the input field.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What does `useRef()` return?
+
+---
+
+### Q2
+
+Why doesn't updating `ref.current` cause a re-render?
+
+---
+
+### Q3
+
+When should you use `useRef()` instead of `useState()`?
+
+---
+
+### Q4
+
+How can you automatically focus an input?
+
+---
+
+### Q5
+
+Can `useRef()` store values other than DOM elements?
+
+---
+
+# Key Takeaways
+
+- `useRef()` returns an object with a `.current` property.
+- The ref object persists across renders.
+- Updating `.current` does not trigger a re-render.
+- Refs are commonly used for DOM access and mutable values.
+- Use `useState()` for UI state and `useRef()` for values that React doesn't need to render.
+
+---
+
+# Summary
+
+`useRef()` is React's way of storing mutable values that survive re-renders without causing additional renders. Its most common use is referencing DOM elements—for example, focusing an input or controlling a video player—but it is also useful for storing values such as timers, previous values, or render counts that should persist between renders without affecting the UI.
+
+---
+# 6 – useMemo()
+
+---
+
+# 🎯 Learning Objectives
+
+By the end of this lesson, you will understand:
+
+- What is memoization?
+- Why React re-renders
+- Why expensive calculations can slow down an app
+- How `useMemo()` works
+- Dependency arrays in `useMemo()`
+- When to use `useMemo()`
+- When NOT to use `useMemo()`
+
+---
+
+# Introduction
+
+Suppose you have
+
+```jsx
+const numbers = [5, 3, 8, 1, 9];
+```
+
+Every time the component renders,
+
+you perform
+
+```jsx
+sort(numbers);
+```
+
+Now imagine
+
+```
+100,000 numbers
+```
+
+Sorting becomes expensive.
+
+Should React sort them
+
+every render?
+
+No.
+
+If the numbers haven't changed,
+
+reuse the previous result.
+
+That idea is called
+
+```
+Memoization
+```
+
+---
+
+# What is Memoization?
+
+Memoization means
+
+```
+Calculate Once
+
+↓
+
+Store Result
+
+↓
+
+Reuse Later
+```
+
+instead of
+
+```
+Calculate
+
+↓
+
+Calculate Again
+
+↓
+
+Calculate Again
+```
+
+---
+
+# Real-Life Example
+
+Suppose
+
+```
+5 × 7
+```
+
+You calculate it once.
+
+```
+35
+```
+
+Now someone asks again.
+
+Instead of calculating,
+
+you remember
+
+```
+35
+```
+
+That's memoization.
+
+---
+
+# Why React Needs It
+
+Remember
+
+every state update causes
+
+the component function
+
+to execute again.
+
+```text
+State Changes
+
+↓
+
+Component Runs Again
+
+↓
+
+Everything Inside Runs Again
+```
+
+That includes
+
+expensive calculations.
+
+---
+
+# Example
+
+```jsx
+function App(){
+
+    const [count, setCount] = useState(0);
+
+    const total = expensiveCalculation();
+
+    return (
+
+        <>
+            <h1>{count}</h1>
+
+            <button
+                onClick={() => setCount(count + 1)}
+            >
+                Increment
+            </button>
+
+            <h2>{total}</h2>
+
+        </>
+
+    );
+
+}
+```
+
+Clicking the button
+
+doesn't change `total`.
+
+But
+
+`expensiveCalculation()`
+
+still runs
+
+every render.
+
+---
+
+# React's Solution
+
+```jsx
+const total = useMemo(() => {
+
+    return expensiveCalculation();
+
+}, []);
+```
+
+Now
+
+the calculation runs
+
+only once.
+
+---
+
+# Basic Syntax
+
+```jsx
+const value = useMemo(
+
+    () => {
+
+        return calculation();
+
+    },
+
+    [dependencies]
+
+);
+```
+
+---
+
+# Anatomy
+
+`useMemo()` accepts
+
+1. A function
+2. A dependency array
+
+```jsx
+useMemo(
+
+    () => result,
+
+    [dependencies]
+
+);
+```
+
+---
+
+# Example
+
+```jsx
+const square = useMemo(() => {
+
+    return number * number;
+
+}, [number]);
+```
+
+React asks
+
+```
+Did number change?
+```
+
+YES
+
+↓
+
+Calculate again.
+
+NO
+
+↓
+
+Return cached value.
+
+---
+
+# Visual
+
+```text
+Render
+
+↓
+
+Check Dependencies
+
+↓
+
+Changed?
+
+↓
+
+YES
+
+↓
+
+Calculate
+
+↓
+
+Store Result
+
+↓
+
+NO
+
+↓
+
+Reuse Previous Result
+```
+
+---
+
+# Practical Example
+
+Without `useMemo()`
+
+```jsx
+const sorted = numbers.sort();
+```
+
+Runs
+
+every render.
+
+---
+
+With `useMemo()`
+
+```jsx
+const sorted = useMemo(() => {
+
+    return [...numbers].sort();
+
+}, [numbers]);
+```
+
+Sorting only happens
+
+when `numbers` changes.
+
+Notice the use of
+
+```jsx
+[...numbers]
+```
+
+to avoid mutating the original array.
+
+---
+
+# Another Example
+
+```jsx
+const evenNumbers = useMemo(() => {
+
+    return numbers.filter(
+
+        number => number % 2 === 0
+
+    );
+
+}, [numbers]);
+```
+
+Filtering only occurs
+
+when the array changes.
+
+---
+
+# What useMemo() Does NOT Do
+
+It does NOT
+
+prevent rendering.
+
+It only prevents
+
+recomputing
+
+the memoized value.
+
+The component
+
+still renders.
+
+---
+
+# Common Mistake
+
+```jsx
+const value = useMemo(() => {
+
+    return 10 + 20;
+
+}, []);
+```
+
+This is unnecessary.
+
+Simple calculations
+
+are already fast.
+
+---
+
+# Good Candidates
+
+✅ Sorting
+
+✅ Filtering large arrays
+
+✅ Complex mathematical calculations
+
+✅ Data transformations
+
+---
+
+# Poor Candidates
+
+❌ Small arithmetic
+
+```jsx
+2 + 3
+```
+
+---
+
+❌ Simple string concatenation
+
+```jsx
+first + last
+```
+
+---
+
+❌ Values that are already cheap
+
+---
+
+# Dependency Array
+
+Exactly like `useEffect()`
+
+```jsx
+useMemo(
+
+    () => calculate(),
+
+    [a, b]
+
+);
+```
+
+Runs again
+
+only when
+
+`a`
+
+or
+
+`b`
+
+changes.
+
+---
+
+# Common Mistakes
+
+❌ Forgetting dependencies.
+
+---
+
+❌ Memoizing everything.
+
+---
+
+❌ Mutating data inside `useMemo()`.
+
+For example,
+
+```jsx
+numbers.sort();
+```
+
+changes the original array.
+
+Instead,
+
+create a copy first.
+
+---
+
+# Best Practices
+
+✅ Use `useMemo()` only for expensive work.
+
+✅ Always provide correct dependencies.
+
+✅ Don't use it prematurely.
+
+Measure performance first.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+```jsx
+const [count, setCount] = useState(0);
+
+const [number, setNumber] = useState(5);
+
+const square = useMemo(() => {
+
+    console.log("Calculating...");
+
+    return number * number;
+
+}, [number]);
+```
+
+Now click
+
+```
+Increment
+```
+
+Observe
+
+```
+Calculating...
+```
+
+does NOT appear,
+
+because `number`
+
+didn't change.
+
+Now change `number`.
+
+Observe
+
+the calculation runs again.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What problem does `useMemo()` solve?
+
+---
+
+### Q2
+
+Does `useMemo()` prevent re-rendering?
+
+---
+
+### Q3
+
+When should you use `useMemo()`?
+
+---
+
+### Q4
+
+What happens if dependencies don't change?
+
+---
+
+### Q5
+
+Why is memoizing everything a bad idea?
+
+---
+
+# Key Takeaways
+
+- `useMemo()` caches the result of expensive calculations.
+- React recomputes the value only when dependencies change.
+- It optimizes computation, not rendering.
+- Use it selectively for expensive operations.
+- Avoid mutating data inside the memoized function.
+
+---
+
+# Summary
+
+`useMemo()` is a performance optimization hook that remembers the result of an expensive computation. During future renders, React returns the cached value if the dependencies haven't changed. Used appropriately, it can reduce unnecessary work and improve performance in applications that perform costly calculations.
+
+---
+
+# 7 – React.memo() & useCallback()
+
+---
+
+# 🎯 Objectives
+
+- Why child components re-render
+- What `React.memo()` does
+- What `useCallback()` does
+- Function identity
+- Why inline functions cause unnecessary renders
+- How `useMemo()`, `useCallback()`, and `React.memo()` work together
+
+---
+
+# Introduction
+
+Consider this component.
+
+```jsx
+function Parent(){
+
+    const [count, setCount] = useState(0);
+
+    return (
+
+        <>
+
+            <button
+                onClick={() => setCount(count + 1)}
+            >
+                Increment
+            </button>
+
+            <Child/>
+
+        </>
+
+    );
+
+}
+```
+
+Click the button.
+
+Question:
+
+Did `Child` re-render?
+
+Yes.
+
+Even though
+
+nothing inside `Child`
+
+changed.
+
+---
+
+# Why?
+
+Remember
+
+Whenever
+
+Parent
+
+renders,
+
+React executes
+
+```jsx
+Parent()
+```
+
+again.
+
+While rendering Parent,
+
+React also renders
+
+its children.
+
+---
+
+Visual
+
+```text
+State Changes
+
+↓
+
+Parent Renders
+
+↓
+
+Child Renders
+```
+
+---
+
+# Example
+
+```jsx
+function Child(){
+
+    console.log("Child Render");
+
+    return <h1>Child</h1>;
+
+}
+```
+
+Click the button.
+
+Console
+
+```
+Child Render
+
+Child Render
+
+Child Render
+```
+
+even though
+
+Child has no state.
+
+---
+
+# React.memo()
+
+React provides
+
+```
+React.memo()
+```
+
+to skip unnecessary
+
+child renders.
+
+---
+
+Syntax
+
+```jsx
+const Child = React.memo(
+
+    function Child(){
+
+        return <h1>Child</h1>;
+
+    }
+
+);
+```
+
+Now React compares
+
+the child's props.
+
+If they didn't change,
+
+React skips rendering.
+
+---
+
+# Visual
+
+Without React.memo()
+
+```text
+Parent Render
+
+↓
+
+Child Render
+```
+
+---
+
+With React.memo()
+
+```text
+Parent Render
+
+↓
+
+Props Changed?
+
+↓
+
+NO
+
+↓
+
+Skip Child Render
+```
+
+---
+
+# But There's a Problem
+
+Suppose
+
+```jsx
+function Parent(){
+
+    const [count, setCount] = useState(0);
+
+    function greet(){
+
+        console.log("Hello");
+
+    }
+
+    return (
+
+        <Child
+
+            greet={greet}
+
+        />
+
+    );
+
+}
+```
+
+Even though
+
+the function code
+
+never changes,
+
+Child
+
+still re-renders.
+
+---
+
+# Why?
+
+Every render
+
+creates
+
+a new function.
+
+Example
+
+Render 1
+
+```jsx
+greet
+```
+
+↓
+
+Memory
+
+```
+0x100
+```
+
+Render 2
+
+```jsx
+greet
+```
+
+↓
+
+Memory
+
+```
+0x250
+```
+
+Different references.
+
+React thinks
+
+```
+New Prop
+```
+
+↓
+
+Render Child.
+
+---
+
+# React.memo() Comparison
+
+React compares props.
+
+```text
+Old greet
+
+↓
+
+0x100
+
+New greet
+
+↓
+
+0x250
+```
+
+Not equal.
+
+Child renders again.
+
+---
+
+# React's Solution
+
+```
+useCallback()
+```
+
+---
+
+# What is useCallback()?
+
+It remembers
+
+a function
+
+between renders.
+
+---
+
+Syntax
+
+```jsx
+const greet = useCallback(
+
+    () => {
+
+        console.log("Hello");
+
+    },
+
+    []
+
+);
+```
+
+Now
+
+React reuses
+
+the same function
+
+until dependencies change.
+
+---
+
+# Visual
+
+Without useCallback()
+
+```text
+Render
+
+↓
+
+Create Function
+
+↓
+
+Render
+
+↓
+
+Create New Function
+
+↓
+
+Render
+
+↓
+
+Create New Function
+```
+
+---
+
+With useCallback()
+
+```text
+Render
+
+↓
+
+Create Function
+
+↓
+
+Store
+
+↓
+
+Reuse
+
+↓
+
+Reuse
+
+↓
+
+Reuse
+```
+
+---
+
+# Complete Example
+
+```jsx
+const Child = React.memo(
+
+    function Child({
+
+        greet
+
+    }){
+
+        console.log(
+
+            "Child Render"
+
+        );
+
+        return (
+
+            <button
+
+                onClick={greet}
+
+            >
+
+                Greet
+
+            </button>
+
+        );
+
+    }
+
+);
+```
+
+Parent
+
+```jsx
+function Parent(){
+
+    const [count, setCount] = useState(0);
+
+    const greet = useCallback(
+
+        () => {
+
+            console.log("Hello");
+
+        },
+
+        []
+
+    );
+
+    return(
+
+        <>
+
+            <button
+
+                onClick={()=>
+
+                    setCount(count+1)
+
+                }
+
+            >
+
+                Increment
+
+            </button>
+
+            <Child
+
+                greet={greet}
+
+            />
+
+        </>
+
+    );
+
+}
+```
+
+Now
+
+Click
+
+Increment.
+
+Child
+
+does NOT
+
+re-render.
+
+---
+
+# useMemo() vs useCallback()
+
+Remember
+
+```
+useMemo()
+
+↓
+
+Caches
+
+Values
+```
+
+Example
+
+```jsx
+const total = useMemo(
+
+    ()=>calculate(),
+
+    []
+
+);
+```
+
+---
+
+```
+useCallback()
+
+↓
+
+Caches
+
+Functions
+```
+
+Example
+
+```jsx
+const handleClick = useCallback(
+
+    ()=>{
+
+    },
+
+    []
+
+);
+```
+
+---
+
+# React.memo()
+
+Caches
+
+Components
+
+```text
+Props Changed?
+
+↓
+
+YES
+
+↓
+
+Render
+
+↓
+
+NO
+
+↓
+
+Skip
+```
+
+---
+
+# The Three Together
+
+```text
+State Changes
+
+↓
+
+Parent Render
+
+↓
+
+React.memo()
+
+↓
+
+Props Same?
+
+↓
+
+YES
+
+↓
+
+Skip Child
+```
+
+Function prop
+
+↓
+
+Stable because of
+
+```
+useCallback()
+```
+
+Expensive value
+
+↓
+
+Cached by
+
+```
+useMemo()
+```
+
+---
+
+# Common Mistakes
+
+❌ Wrapping every component in `React.memo()`.
+
+It has a comparison cost.
+
+If the component is tiny,
+
+the comparison may cost more than rendering.
+
+---
+
+❌ Wrapping every function in `useCallback()`.
+
+It also has overhead.
+
+Use it when a stable function reference is beneficial, especially for memoized children or dependency arrays.
+
+---
+
+❌ Thinking `React.memo()` blocks all renders.
+
+It only skips renders
+
+when props haven't changed.
+
+State changes inside the memoized component will still trigger re-renders.
+
+---
+
+# Best Practices
+
+✅ Use `React.memo()` for components that render often and receive the same props.
+
+✅ Use `useCallback()` when passing callbacks to memoized child components.
+
+✅ Use `useMemo()` for expensive computations.
+
+Measure performance before optimizing.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+Parent
+
+```jsx
+const [count, setCount] = useState(0);
+```
+
+Create
+
+Child
+
+```jsx
+console.log(
+
+"Child Render"
+
+);
+```
+
+First
+
+without
+
+`React.memo()`.
+
+Observe
+
+Child renders
+
+every click.
+
+Now
+
+add
+
+`React.memo()`.
+
+Then
+
+pass
+
+an inline callback.
+
+Observe
+
+Child renders again.
+
+Finally
+
+replace it with
+
+`useCallback()`.
+
+Observe
+
+Child stops re-rendering.
+
+---
+
+# Interview Questions
+
+### Q1
+
+Why do child components re-render?
+
+---
+
+### Q2
+
+What problem does `React.memo()` solve?
+
+---
+
+### Q3
+
+Why can functions cause unnecessary renders?
+
+---
+
+### Q4
+
+What is the difference between `useMemo()` and `useCallback()`?
+
+---
+
+### Q5
+
+When should you use `useCallback()`?
+
+---
+
+# Key Takeaways
+
+- Parent re-renders normally cause child components to re-render.
+- `React.memo()` skips rendering when props haven't changed.
+- Functions are recreated on every render, changing their references.
+- `useCallback()` returns the same function reference until its dependencies change.
+- `useMemo()`, `useCallback()`, and `React.memo()` address different performance concerns and often complement one another.
+
+---
+
+# Summary
+
+React renders are inexpensive in many cases, so optimization should be applied thoughtfully. `React.memo()` prevents unnecessary child renders, `useCallback()` stabilizes function references, and `useMemo()` caches expensive computed values. Together, they form a powerful toolkit for optimizing React applications when performance bottlenecks actually exist.
+
+---
+
+# 8 – Context API
+
+---
+
+# 🎯 Objectives
+
+- What is Context API?
+- Why Prop Drilling is a problem
+- Global vs Local State
+- createContext()
+- Provider
+- useContext()
+- Real-world examples
+- Best practices
+
+---
+
+# Introduction
+
+Suppose your application looks like this.
+
+```text
+App
+
+│
+
+├── Dashboard
+
+│      │
+
+│      └── Sidebar
+
+│              │
+
+│              └── Profile
+
+│                      │
+
+│                      └── Avatar
+```
+
+The user's name is stored in
+
+```
+App
+```
+
+But
+
+```
+Avatar
+```
+
+needs it.
+
+How do we pass it?
+
+---
+
+# Traditional Way
+
+```text
+App
+
+↓
+
+Dashboard
+
+↓
+
+Sidebar
+
+↓
+
+Profile
+
+↓
+
+Avatar
+```
+
+Each component
+
+passes the prop
+
+to the next one.
+
+Even if
+
+it doesn't use it.
+
+---
+
+# Example
+
+```jsx
+<App user={user}>
+
+↓
+
+<Dashboard user={user}>
+
+↓
+
+<Sidebar user={user}>
+
+↓
+
+<Profile user={user}>
+
+↓
+
+<Avatar user={user}>
+```
+
+Only
+
+```
+Avatar
+```
+
+needs
+
+```
+user
+```
+
+The other components
+
+just forward it.
+
+---
+
+# This Problem is Called
+
+```
+Prop Drilling
+```
+
+---
+
+# Why is Prop Drilling Bad?
+
+Imagine
+
+10 levels
+
+of components.
+
+Every level
+
+must receive
+
+and pass
+
+the prop.
+
+Adding or removing a component
+
+often means updating
+
+many files.
+
+---
+
+# React's Solution
+
+```
+Context API
+```
+
+Instead of passing data
+
+through every level,
+
+React provides
+
+a shared data source.
+
+Any component
+
+can read it.
+
+---
+
+# Visual
+
+Without Context
+
+```text
+App
+
+↓
+
+Dashboard
+
+↓
+
+Sidebar
+
+↓
+
+Profile
+
+↓
+
+Avatar
+```
+
+---
+
+With Context
+
+```text
+        Context
+
+           ▲
+
+           │
+
+App
+
+│
+
+├── Dashboard
+
+│
+
+├── Sidebar
+
+│
+
+├── Profile
+
+│
+
+└── Avatar
+```
+
+Every component
+
+can access
+
+Context directly.
+
+---
+
+# Step 1 — Create Context
+
+```jsx
+import {
+
+    createContext
+
+} from "react";
+
+const UserContext = createContext();
+```
+
+This creates
+
+a context object.
+
+---
+
+# Step 2 — Provide Data
+
+```jsx
+<UserContext.Provider
+
+    value={user}
+
+>
+
+    <App/>
+
+</UserContext.Provider>
+```
+
+The Provider
+
+makes data available
+
+to all children.
+
+---
+
+# Step 3 — Consume Data
+
+```jsx
+import {
+
+    useContext
+
+} from "react";
+
+const user = useContext(
+
+    UserContext
+
+);
+```
+
+That's it.
+
+No prop drilling.
+
+---
+
+# Complete Example
+
+## UserContext.js
+
+```jsx
+import {
+
+    createContext
+
+} from "react";
+
+export const UserContext =
+
+createContext();
+```
+
+---
+
+## main.jsx
+
+```jsx
+<UserContext.Provider
+
+    value={{
+
+        name:"Utpal"
+
+    }}
+
+>
+
+    <App/>
+
+</UserContext.Provider>
+```
+
+---
+
+## Avatar.jsx
+
+```jsx
+import {
+
+    useContext
+
+} from "react";
+
+import {
+
+    UserContext
+
+} from "./UserContext";
+
+function Avatar(){
+
+    const user = useContext(
+
+        UserContext
+
+    );
+
+    return(
+
+        <h2>
+
+            {user.name}
+
+        </h2>
+
+    );
+
+}
+```
+
+No props needed.
+
+---
+
+# Visual Flow
+
+```text
+Provider
+
+↓
+
+Stores Value
+
+↓
+
+Any Child
+
+↓
+
+useContext()
+
+↓
+
+Receives Value
+```
+
+---
+
+# Local State vs Context
+
+Suppose
+
+Counter
+
+```
+count
+```
+
+used only
+
+inside
+
+Counter.
+
+Use
+
+```
+useState()
+```
+
+---
+
+Suppose
+
+Logged-in User
+
+is needed
+
+everywhere.
+
+Use
+
+```
+Context API
+```
+
+---
+
+# Good Use Cases
+
+✅ Theme
+
+```text
+Dark Mode
+```
+
+---
+
+✅ Logged-in User
+
+---
+
+✅ Language
+
+```
+English
+
+Hindi
+
+Odia
+```
+
+---
+
+✅ Authentication
+
+---
+
+✅ Shopping Cart
+
+(small applications)
+
+---
+
+# Bad Use Cases
+
+Large
+
+frequently changing
+
+application state.
+
+For example
+
+```
+Thousands
+
+of chat messages
+```
+
+Context updates
+
+all consumers.
+
+For complex state,
+
+libraries like Zustand
+
+or Redux Toolkit
+
+are often a better fit.
+
+---
+
+# Example
+
+Dark Mode
+
+```jsx
+const ThemeContext =
+
+createContext();
+```
+
+Provider
+
+```jsx
+<ThemeContext.Provider
+
+value={theme}
+
+>
+
+<App/>
+
+</ThemeContext.Provider>
+```
+
+Anywhere
+
+```jsx
+const theme =
+
+useContext(
+
+ThemeContext
+
+);
+```
+
+---
+
+# Multiple Contexts
+
+You can have
+
+```text
+Theme Context
+
+User Context
+
+Language Context
+
+Settings Context
+```
+
+Each
+
+handles
+
+one concern.
+
+---
+
+# Common Mistakes
+
+❌ Using Context
+
+for every state.
+
+---
+
+❌ Putting
+
+temporary form input
+
+into Context.
+
+Keep local state
+
+local.
+
+---
+
+❌ Creating one huge context
+
+for unrelated data.
+
+Prefer several focused contexts.
+
+---
+
+# Best Practices
+
+✅ Use Context
+
+for shared application state.
+
+---
+
+✅ Keep contexts focused.
+
+---
+
+✅ Combine Context
+
+with custom hooks
+
+for cleaner code.
+
+Example
+
+```jsx
+function useUser(){
+
+    return useContext(
+
+        UserContext
+
+    );
+
+}
+```
+
+Then components simply call
+
+```jsx
+const user = useUser();
+```
+
+---
+
+# Hands-on Exercise
+
+Build
+
+a Theme Context.
+
+Requirements
+
+- Light/Dark mode
+- Toggle button
+- Provider
+- useContext()
+- No prop drilling
+
+---
+
+# Interview Questions
+
+### Q1
+
+What problem does Context API solve?
+
+---
+
+### Q2
+
+What is Prop Drilling?
+
+---
+
+### Q3
+
+What is the role of a Provider?
+
+---
+
+### Q4
+
+What does `useContext()` return?
+
+---
+
+### Q5
+
+When should you use Context instead of `useState()`?
+
+---
+
+# Key Takeaways
+
+- Context API allows data to be shared without passing props through every intermediate component.
+- `createContext()` creates a context object.
+- A `Provider` supplies the value to its descendants.
+- `useContext()` reads the nearest provider's value.
+- Context is well suited for shared state such as themes, authenticated users, and language preferences.
+
+---
+
+# Summary
+
+Context API solves the problem of prop drilling by allowing related components to share data through a common provider. Instead of manually passing props through multiple layers, components can directly access shared values using `useContext()`. Used thoughtfully, Context simplifies application architecture and improves maintainability.
+
+---
+
+
+# 9 – Custom Hooks
+
+# 🎯 Objectives
+
+- Why Custom Hooks exist
+- How to create your own hooks
+- Reusing stateful logic
+- Hook naming conventions
+- Creating `useFetch()`
+- Creating `useLocalStorage()`
+- Best practices
+
+---
+
+# Introduction
+
+Suppose you have
+
+```
+User Page
+
+Product Page
+
+Orders Page
+```
+
+All three pages need to
+
+- Fetch data
+- Show loading
+- Show errors
+
+You write the same code three times.
+
+```jsx
+const [data, setData] = useState(null);
+
+const [loading, setLoading] = useState(true);
+
+const [error, setError] = useState(null);
+
+useEffect(() => {
+
+    ...
+
+}, []);
+```
+
+This is code duplication.
+
+---
+
+# React's Solution
+
+Instead of copying the code,
+
+move it into
+
+```
+Custom Hook
+```
+
+Then every component
+
+can reuse it.
+
+---
+
+# What is a Custom Hook?
+
+A Custom Hook is simply
+
+```
+A JavaScript function
+
+that uses React Hooks.
+```
+
+Example
+
+```jsx
+function useSomething(){
+
+    const [value, setValue] = useState();
+
+    return value;
+
+}
+```
+
+Notice
+
+the name starts with
+
+```
+use
+```
+
+This is required by convention and enables React's Hook rules.
+
+---
+
+# Why "use"?
+
+React recognizes
+
+functions beginning with
+
+```
+use
+```
+
+as Hooks.
+
+Good
+
+```jsx
+useFetch()
+
+useTheme()
+
+useAuth()
+```
+
+Bad
+
+```jsx
+fetchData()
+
+theme()
+
+auth()
+```
+
+---
+
+# Example
+
+Suppose
+
+three components
+
+need
+
+```
+Current Window Width
+```
+
+Without a custom hook
+
+each component
+
+contains
+
+```jsx
+useEffect()
+
+↓
+
+addEventListener()
+
+↓
+
+cleanup
+```
+
+Repeated three times.
+
+---
+
+# Create
+
+useWindowWidth()
+
+```jsx
+import {
+
+    useEffect,
+
+    useState
+
+} from "react";
+
+function useWindowWidth(){
+
+    const [width, setWidth] = useState(
+
+        window.innerWidth
+
+    );
+
+    useEffect(() => {
+
+        function handleResize(){
+
+            setWidth(
+
+                window.innerWidth
+
+            );
+
+        }
+
+        window.addEventListener(
+
+            "resize",
+
+            handleResize
+
+        );
+
+        return () => {
+
+            window.removeEventListener(
+
+                "resize",
+
+                handleResize
+
+            );
+
+        };
+
+    }, []);
+
+    return width;
+
+}
+```
+
+---
+
+# Use It
+
+```jsx
+function App(){
+
+    const width =
+
+        useWindowWidth();
+
+    return(
+
+        <h1>
+
+            {width}
+
+        </h1>
+
+    );
+
+}
+```
+
+Very clean.
+
+---
+
+# Example 2
+
+useFetch()
+
+```jsx
+function useFetch(url){
+
+    const [data, setData] = useState(null);
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+
+        async function load(){
+
+            try{
+
+                const response = await fetch(url);
+
+                if(!response.ok){
+
+                    throw new Error("Request failed");
+
+                }
+
+                const result = await response.json();
+
+                setData(result);
+
+            }
+
+            catch(err){
+
+                setError(err.message);
+
+            }
+
+            finally{
+
+                setLoading(false);
+
+            }
+
+        }
+
+        load();
+
+    }, [url]);
+
+    return {
+
+        data,
+
+        loading,
+
+        error
+
+    };
+
+}
+```
+
+---
+
+# Using useFetch()
+
+```jsx
+function App(){
+
+    const {
+
+        data,
+
+        loading,
+
+        error
+
+    } = useFetch(
+
+        "https://api.github.com/users/octocat"
+
+    );
+
+    if(loading){
+
+        return <h2>Loading...</h2>;
+
+    }
+
+    if(error){
+
+        return <h2>{error}</h2>;
+
+    }
+
+    return(
+
+        <h1>
+
+            {data.name}
+
+        </h1>
+
+    );
+
+}
+```
+
+Notice
+
+No `useEffect()`
+
+inside App.
+
+The hook hides
+
+all the complexity.
+
+---
+
+# Example 3
+
+useLocalStorage()
+
+```jsx
+function useLocalStorage(key, initialValue){
+
+    const [value, setValue] = useState(() => {
+
+        const stored = localStorage.getItem(key);
+
+        return stored
+
+            ? JSON.parse(stored)
+
+            : initialValue;
+
+    });
+
+    useEffect(() => {
+
+        localStorage.setItem(
+
+            key,
+
+            JSON.stringify(value)
+
+        );
+
+    }, [key, value]);
+
+    return [
+
+        value,
+
+        setValue
+
+    ];
+
+}
+```
+
+---
+
+# Using It
+
+```jsx
+const [
+
+theme,
+
+setTheme
+
+] = useLocalStorage(
+
+    "theme",
+
+    "light"
+
+);
+```
+
+The theme now
+
+survives page refreshes.
+
+---
+
+# Rules
+
+Custom Hooks
+
+must follow
+
+the same rules
+
+as built-in Hooks.
+
+✅ Call Hooks
+
+at the top level.
+
+---
+
+❌ Don't call Hooks
+
+inside loops.
+
+---
+
+❌ Don't call Hooks
+
+inside conditions.
+
+---
+
+# Folder Structure
+
+```text
+src
+
+├── components
+
+├── hooks
+
+│     ├── useFetch.js
+
+│     ├── useTheme.js
+
+│     ├── useAuth.js
+
+│     └── useLocalStorage.js
+
+├── pages
+
+└── App.jsx
+```
+
+Professional projects
+
+often have
+
+a dedicated
+
+```
+hooks
+```
+
+folder.
+
+---
+
+# Real ResearchMind AI Example
+
+Imagine
+
+many pages
+
+need
+
+authentication.
+
+Instead of
+
+duplicating
+
+login logic,
+
+create
+
+```jsx
+useAuth()
+```
+
+It can provide
+
+```
+user
+
+login()
+
+logout()
+
+isAuthenticated
+```
+
+Any page
+
+can simply call
+
+```jsx
+const {
+
+    user,
+
+    logout
+
+} = useAuth();
+```
+
+---
+
+# Common Mistakes
+
+❌ Returning JSX
+
+from a custom hook.
+
+Hooks should return
+
+values,
+
+functions,
+
+or state,
+
+not UI.
+
+---
+
+❌ Using a hook
+
+only once
+
+just because you can.
+
+Extract logic
+
+when it improves
+
+reuse or readability.
+
+---
+
+# Best Practices
+
+✅ Keep hooks focused on one responsibility.
+
+✅ Return only the values and functions consumers need.
+
+✅ Use descriptive names.
+
+✅ Hide implementation details.
+
+---
+
+# Hands-on Exercise
+
+Create
+
+```
+useCounter()
+```
+
+Requirements
+
+- Internal `count` state
+- `increment()`
+- `decrement()`
+- `reset()`
+
+Return
+
+```jsx
+return {
+
+    count,
+
+    increment,
+
+    decrement,
+
+    reset
+
+};
+```
+
+Use it
+
+inside
+
+two different components.
+
+Notice
+
+each component
+
+gets its own
+
+independent state.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What is a Custom Hook?
+
+---
+
+### Q2
+
+Why should custom hooks start with `use`?
+
+---
+
+### Q3
+
+What kinds of values should a custom hook return?
+
+---
+
+### Q4
+
+Can multiple components use the same custom hook?
+
+---
+
+### Q5
+
+Does using the same custom hook mean components share state?
+
+---
+
+# Key Takeaways
+
+- A custom hook is a function that uses React Hooks.
+- Custom hooks help reuse stateful logic across components.
+- They follow the same rules as built-in hooks.
+- They usually return state, functions, or objects—not JSX.
+- Calling the same custom hook in two components creates two separate instances of state.
+
+---
+
+# Summary
+
+Custom hooks let you package reusable logic into small, focused functions. They reduce duplication, improve readability, and make components easier to maintain by separating business logic from UI rendering. They are a cornerstone of clean, scalable React applications.
+
+---

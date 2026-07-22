@@ -897,9 +897,7 @@ The variable stores the function.
 
 # Why Store a Function?
 
-Because in JavaScript,
-
-functions are values.
+Because in JavaScript, functions are values.
 
 Just like numbers.
 
@@ -1178,9 +1176,7 @@ This is one of JavaScript's most confusing topics.
 
 We'll learn it fully later.
 
-For now,
-
-understand the difference.
+For now, understand the difference.
 
 Traditional function
 
@@ -1236,9 +1232,7 @@ Why?
 
 Arrow functions **do not create their own `this`**.
 
-Instead,
-
-they inherit `this` from the surrounding scope.
+Instead, they inherit `this` from the surrounding scope.
 
 We'll study this deeply in a later lesson.
 
@@ -1367,21 +1361,13 @@ const add = (a,b)=>a+b;
 Wrong
 
 ```javascript
-()=>{
-
-    name:"Utpal"
-
-}
+()=>{ name:"Utpal"}
 ```
 
 Correct
 
 ```javascript
-()=>({
-
-    name:"Utpal"
-
-})
+()=>({name:"Utpal" })
 ```
 
 ---
@@ -1428,7 +1414,7 @@ Verify that all three produce the same output.
 
 ---
 
-Next
+Next 
 
 Write
 
@@ -4071,8 +4057,6 @@ React, Vite, Next.js, Angular, Vue, and many other modern frameworks rely heavil
 
 # 🎯 Objectives
 
-By the end of this lesson, you will understand:
-
 - Synchronous Programming
 - Asynchronous Programming
 - Why asynchronous programming exists
@@ -4153,9 +4137,7 @@ This is synchronous execution.
 
 # The Problem
 
-Suppose downloading data takes
-
-5 seconds.
+Suppose downloading data takes 5 seconds.
 
 ```javascript
 downloadLargeFile();
@@ -4163,9 +4145,7 @@ downloadLargeFile();
 console.log("Finished");
 ```
 
-If JavaScript waited,
-
-your browser would freeze.
+If JavaScript waited, your browser would freeze.
 
 Users couldn't
 
@@ -4329,23 +4309,74 @@ Welcome!
 
 # Why Callbacks?
 
-Suppose
+There are two major uses of callbacks:
 
-Download File
+## Synchronous callbacks (execute immediately)
 
-↓
+These are not used for time-consuming operations.
 
-When finished
+```javascript
+const numbers = [1, 2, 3];
 
-↓
+numbers.forEach(function (num) {
+  console.log(num);
+});
+```
+Here:
 
-Display Message
+`forEach()` takes a callback.
 
-Callbacks tell JavaScript what to do later.
+It immediately calls the callback for each array element.
+
+Nothing asynchronous is happening.
+
+Other examples:
+
+- map()
+- filter()
+- reduce()
+- sort()
+
+These all use callbacks synchronously.
+
+## Asynchronous callbacks (execute later)
+
+These are used when an operation takes time.
+
+```javascript
+setTimeout(() => {
+  console.log("Hello");
+}, 2000);
+
+```
+
+Here the callback runs 2 seconds later. Another example:
+
+```javascript
+button.addEventListener("click", () => {
+  console.log("Button clicked");
+});
+```
+
+So 
+
+```
+A callback allows one function to decide when and under what conditions another function should execute.
+```
+That execution might be:
+
+- immediately (map, filter, forEach)
+- after a delay (setTimeout)
+- after a user action (addEventListener)
+- after an API response (fetch in older callback-based APIs)
+- after reading a file (fs.readFile)
 
 ---
+# Problem with Callback Functions
 
-# Callback Hell
+## 1- Callback Hell (Excessive Callback Nesting)
+
+Callback hell occurs when asynchronous operations depend on one another, forcing you to nest callbacks inside callbacks, making the code hard to read, understand, and maintain.
 
 Suppose
 
@@ -4358,46 +4389,50 @@ Load Profile
 
 ↓
 
-Load Messages
+Load Posts
 
 ↓
 
-Load Notifications
-
-↓
-
-Load Settings
+Load Comments
 ```
 
 Using callbacks
 
 ```javascript
-login(function(){
+loginUser(username, password, (user) => {
 
-    loadProfile(function(){
+    getProfile(user.id, (profile) => {
 
-        loadMessages(function(){
+        getPosts(profile.id, (posts) => {
 
-            loadSettings(function(){
-
-                ...
-
+            getComments(posts[0].id, (comments) => {
+                console.log(comments);
             });
-
         });
-
     });
-
 });
 ```
 
 Notice the increasing indentation.
 
-This is called **Callback Hell**.
+This is called **`Callback Hell`**.
+
+The pyramid shape in code is why callback hell is also called the **`Pyramid of Doom`**. 
+
+```
+- People usually associate callback hell with asynchronous code because that's where it commonly occurs. However, deeply nested synchronous callbacks can also become hard to read and maintain.
+
+- However synchronous callbacks rarely need to be nested.
+
+-In synchronous programming, functions can simply return values, so there's little reason to keep nesting callbacks.
+
+- An asynchronous function cannot immediately return its final result, because it doesn't have it yet.
+
+- Before Promises, the only way to continue the workflow was to use nesting of callbacks.
+```
 
 ---
-
-# Problems with Callback Hell
+## Problems with Callback Hell
 
 - Difficult to read
 - Difficult to debug
@@ -4406,24 +4441,136 @@ This is called **Callback Hell**.
 JavaScript introduced **Promises** to solve this.
 
 ---
+## 2- Inversion of Control
+
+This is considered the biggest problem.
+
+When you pass a callback to another function, you lose control over when, how, or even if it gets called.
+
+``` javascript
+buyProduct(product, function() {
+    chargeCreditCard();
+});
+```
+You are trusting buyProduct().
+
+Questions arise:
+
+Will it call the callback?  
+Will it call it once?  
+Twice?  
+Too early?  
+Too late?  
+
+Your code depends entirely on someone else's implementation.
+
+---
+
+# The problem promises solve
+
+```
+Synchronous
+------------
+
+Function returns the result.
+
+caller ← result
+```
+
+```
+Asynchronous callback
+---------------------
+
+Function returns immediately(often undefined or some handle).
+
+caller ← nothing useful
+
+
+...later...
+
+callback ← result
+```
+```
+Promise
+-------
+
+Function returns a Promise immediately.
+
+caller ← Promise
+
+
+...later...
+
+Promise → .then(callback) receives the result
+```
+
+### Summary
+
+```
+In synchronous programs, we usually don't need nested callbacks because each function returns its result immediately. The next function can simply use that returned value.
+
+In asynchronous programs, a function cannot immediately return its final result because the operation is still in progress. Therefore, the next function cannot simply use a return value. Before Promises, the only option was to pass a callback so the asynchronous function could notify us later, which often led to callback hell.
+
+Promises solve this by returning a Promise object immediately. This Promise acts as a placeholder for the future result. Instead of nesting callbacks, we attach callbacks using .then(). When the Promise is fulfilled, JavaScript automatically invokes the appropriate .then() callback with the resolved value.
+```
+```
+An asynchronous function has two choices:
+
+Accept a callback that it will invoke later. (Old style.)
+Return a Promise that represents the future result. (Modern style.)
+
+Both solve the same problem:
+
+"I don't have the value yet."
+
+The difference is how the value is delivered later.
+```
 
 # Promise
 
-A Promise represents
+Promises let you write the same sequence without nesting. 
 
-> A value that will be available in the future.
+One way to think of a Promise is as a mechanism for flattening asynchronous callback chains.
 
-Think of a JavaScript Promise exactly like ordering food at a busy restaurant.
+```javascript
+loginUser(username, password)
+    .then(user => getProfile(user.id))
+    .then(profile => getPosts(profile.id))
+    .then(posts => getComments(posts[0].id))
+    .then(comments => console.log(comments))
+    .catch(err => console.error(err));
+```
 
-You walk up to the counter, place your order for a burger, and pay. The cashier doesn't hand you the burger immediately because it takes time to cook. Instead, they hand you a buzzer (a receipt/token).
+> A Promise is an object representing the eventual completion or failure of an asynchronous operation.
 
-That buzzer is a Promise. It is a placeholder for something that will happen in the future.
+> Essentially, a promise is a returned object to which you attach callbacks, instead of passing callbacks into a function.
 
+Imagine a function, **createAudioFileAsync()**, which asynchronously generates a sound file given a configuration record and two callback functions: one called if the audio file is successfully created, and the other called if an error occurs.
+Here's some code that uses createAudioFileAsync():
+
+```javascript
+function successCallback(result) {
+  console.log(`Audio file ready at URL: ${result}`);
+}
+
+function failureCallback(error) {
+  console.error(`Error generating audio file: ${error}`);
+}
+
+createAudioFileAsync(audioSettings, successCallback, failureCallback);
+
+```
+
+If **createAudioFileAsync()** were rewritten to return a promise, you would attach your callbacks to it instead:
+
+```javascript
+createAudioFileAsync(audioSettings).then(successCallback, failureCallback);
+```
 ---
 
 # Promise States
 
-While you are sitting at your table waiting for your burger, that buzzer exists in one of **three** states:
+Apromise exists in one of **three** states:
 
 ```mermaid
 graph TD
@@ -4435,55 +4582,51 @@ graph TD
     style D fill:#f8d7da,stroke:#dc3545,stroke-width:2px, color:#000000
 ``` 
 
-Pending (The Wait): The buzzer hasn't gone off yet. The kitchen is still cooking. The outcome is unknown.
-
-Fulfilled (Success!): The buzzer blinks and vibrates. Your burger is ready! You go to the counter and get your food.
-
-Rejected (Failure): The buzzer blinks red, and the manager apologizes: "Sorry, we just ran out of beef." You don't get your burger; you get an error message instead.
-
 💡 Crucial Rule: A promise can only change states once. It goes from Pending to either Fulfilled or Rejected. Once it changes, it is locked in forever. You can't un-eat the burger, and they can't un-cancel the order.
 
 ---
 
+# Creating a Promise
 
-# Creating a Promise (The Kitchen)
-
-Here is how the restaurant sets up the promise to cook your food:
+Here is how a promise is created:
 
 ```javascript
-const orderBurger = new Promise((resolve, reject) => {
-  let burgerReady = true; // Change this to false to simulate running out of food
+const promise = new Promise((resolve, reject) => {
+    // asynchronous work
 
-  console.log("Cooking your burger... please wait.");
-
-  setTimeout(() => {
-    if (burgerReady) {
-      resolve("Delicious Burger! 🍔"); // Success!
+    if (success) {
+        resolve(value);
     } else {
-      reject("Sorry, out of ingredients! ❌"); // Failure!
+        reject(error);
     }
-  }, 3000); // Takes 3 seconds to cook
 });
 ```
 
+The Promise constructor takes one function (called the executor function).
+
+The executor receives two callback functions automatically:
+
+- resolve
+- reject
+
+You don't create these yourself—JavaScript provides them.
+
 ---
 
-# Consuming a Promise (The Customer)
+# Consuming a Promise
 
-Now, how do you handle the buzzer? You use `.then()` for the good news and `.catch()` for the bad news.
+We use `.then()` to receive the resolved value and `.catch()` to receive the rejected value.
 
 ```javascript
-orderBurger
-  .then((food) => {
-    // This runs ONLY if resolve() was called
-    console.log("Yay! I got my " + food);
-  })
-  .catch((error) => {
-    // This runs ONLY if reject() was called
-    console.log("Oh no: " + error);
-  });
-```
+promise
+.then((result) => {
+    console.log(result);
+})
+.catch((error) => {
+        console.log(error);
+    });
 
+```    
 
  `.then()` runs only if the Promise succeeds.
 
@@ -4509,119 +4652,120 @@ promise
 
 ---
 
-# Promise Chaining
+# Promise Chaining (instead of Callback Hell)
 
-Promise Chaining is what happens when you need to complete a series of steps in a specific order—like a factory assembly line or a multi-course recipe.
+A common need is to execute two or more asynchronous operations back to back, where each subsequent operation starts when the previous operation succeeds, with the result from the previous step. 
 
-In JavaScript, promise chaining allows you to pass the result of one asynchronous action directly into the next one, avoiding messy, deeply nested code.
-
-### The Recipe Analogy: Making Dinner
-
-Imagine you want to make a homemade pizza. You can't bake the pizza until the dough is rolled, and you can't roll the dough until it's finished rising. It's a strict sequence of steps:
-
-```mermaid
-graph LR
-    A[Step 1: Prepare Dough] -->|Raw Dough| B(Step 2: Roll Dough)
-    B -->| Flattened Base| C(Step 3: Bake Pizza)
-    
-
-    %% Stylings for Black Fonts and High Contrast Boxes
-    style A fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000000
-    style B fill:#cce5ff,stroke:#004085,stroke-width:2px,color:#000000
-    style C fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000000    
-```    
-The secret weapon of promise chaining is that whatever you return inside a .then() block gets wrapped up into a brand new promise for the next .then() to catch.
-
-1. The Functions (The Steps)
-First, let's simulate our time-consuming steps using functions that return promises:
+Using Callback functions, doing several asynchronous operations in a row would lead to the classic **callback hell**.
 
 ```javascript
-function prepareDough() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve("Raw Dough 🥣"), 1000);
-  });
-}
-
-function rollDough(dough) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(`${dough} -> Flattened Base 🍕`), 1000);
-  });
-}
-
-function bakePizza(base) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(`${base} -> Crispy Hot Pizza! 🔥`), 1000);
-  });
-}
+doSomething(function (result) {
+  doSomethingElse(result, function (newResult) {
+    doThirdThing(newResult, function (finalResult) {
+      console.log(`Got the final result: ${finalResult}`);
+    }, failureCallback);
+  }, failureCallback);
+}, failureCallback);
 ```
-2. Linking Them Together (The Chain)
-Instead of nesting them inside each other, we can chain them vertically like this:
+
+With promises, we accomplish this by creating a promise chain.
+
+The secret weapon of promise chaining is that whatever you return inside a `.then()` block gets wrapped up into a brand new promise for the next `.then()` to catch.
+
+The API design of promises makes this great, because callbacks are attached to the returned promise object, instead of being passed into a function.
+
+Here's the magic: the `.then()` function returns a new promise, different from the original:
+
 ```javascript
-prepareDough()
-  .then((rawDough) => {
-    console.log("Step 1 done:", rawDough);
-    // We RETURN the next promise!
-    return rollDough(rawDough); 
-  })
-  .then((flattenedBase) => {
-    console.log("Step 2 done:", flattenedBase);
-    // We RETURN the final promise!
-    return bakePizza(flattenedBase); 
-  })
-  .then((finalPizza) => {
-    // This receives the output of bakePizza
-    console.log("Step 3 done! Dinner is served: " + finalPizza);
-  });
+const promise = doSomething();
+const promise2 = promise.then(successCallback, failureCallback);
 ```
 
-The Output in the Console:
+Much cleaner than nested callbacks. 
 
-```
-(After 1 second): Step 1 done: Raw Dough 🥣
+This second promise (promise2) represents the completion not just of `doSomething()`, but also of the `successCallback` or `failureCallback` you passed in — which can be other asynchronous functions returning a promise.
 
-(After 2 seconds): Step 2 done: Raw Dough 🥣 -> Flattened Base 🍕
+ When that's the case, any callbacks added to promise2 get queued behind the promise returned by either `successCallback` or `failureCallback`.
 
-(After 3 seconds): Step 3 done! Dinner is served: Raw Dough 🥣 -> Flattened Base 🍕 -> Crispy Hot Pizza! 🔥
-```
-
-Much cleaner than nested callbacks.
-
-### How Error Handling Works in a Chain
+## How Error Handling Works in a Chain
 
 What if something goes wrong in the middle? 
-
-Say the oven breaks during the baking step.
 
 You don't need to write error handling for every single step. 
 
 You can just put one single `.catch()` at the very bottom of the chain.
 
 ```javascript
-prepareDough()
-  .then((rawDough) => rollDough(rawDough))
-  .then((flattenedBase) => bakePizza(flattenedBase)) // Imagine this fails/rejects!
-  .then((pizza) => console.log("Eat: " + pizza)) 
-  .catch((error) => {
-    // If ANY step above fails, JavaScript skips straight down to here!
-    console.log("Cooking aborted: " + error); 
-  });
+Promise.resolve(10)
+    .then((value) => {
+        console.log(value);
+        return value * 2;
+    })
+    .then((value) => {
+        console.log(value);
+        return value + 5;
+    })
+    .then((value) => {
+        console.log(value);
+    })
+    .catch((err) => {
+        console.log(err);
+    });
 ```
-If the rollDough step fails, JavaScript instantly halts the conveyor belt, skips the bakePizza step, skips the eating step, and drops straight into the .catch().
 
-### Summary Memory Trick
-```
-**Single Promise:** A single buzzer for one item.
-
-**Promise Chaining:** An assembly line. Whatever you return from a .then() becomes the input for the next .then().
-
-**The Catch Safety Net:** One .catch() at the bottom guards the entire conveyor belt.  
-```
 
 ---
 
-# But It Still Looks Verbose
+# The Problem with Promises
 
-While Promise Chaining with `.then()` is great, writing long chains can still get a bit hard to read as your application grows. To fix this, JavaScript introduced two magical keywords: `async` and `await`.
+Promise Chaining solve callback hell, but writing asynchronous logic as a chain of `.then()` callbacks is still harder to read than normal sequential code.
+
+Suppose you have this Promise chain:
+
+```javascript
+login()
+    .then(user => getProfile(user))
+    .then(profile => getPosts(profile))
+    .then(posts => console.log(posts))
+    .catch(err => console.error(err));
+```
+It works.
+
+But notice you're still thinking in terms of callbacks.
+```
+"When this finishes, run this callback."
+```
+The human brain doesn't naturally think that way. It thinks:
+
+```
+First login.
+
+Then get the profile.
+
+Then get the posts.
+
+Then display them.
+```
+
+That's exactly what async/await lets you write. 
+
+`async/await` is essentially syntactic sugar built on top of Promises.
+
+```
+Callbacks
+     │
+     ▼
+Callback Hell 😫
+     │
+     ▼
+Promises
+     │
+     ▼
+Long .then() chains 😐
+     │
+     ▼
+async/await 😊
+```
 
 ---
 
@@ -4631,45 +4775,127 @@ While Promise Chaining with `.then()` is great, writing long chains can still ge
 
 Think of `async`/`await` as a magical remote control for your code. 
 
-Instead of dealing with hooks, callbacks, or chaining `.then()` blocks, `async`/`await` lets you write asynchronous code that looks and reads exactly like normal, step-by-step synchronous code.
+Instead of dealing with callbacks, or chaining `.then()` blocks, `async`/`await` lets you write asynchronous code that looks and reads exactly like normal, step-by-step synchronous code.
 
-`async`: Tells JavaScript, "Hey, this entire function is going to handle tasks that take time."
-
-`await`: Tells JavaScript, "Freeze right here and wait until this specific promise finishes before moving to the next line."
-
-### The Upgrade: From `.then()` to `async`/`await`
-Let's look at the exact same pizza recipe, but rewritten using our new remote control.
+## Step 1: The async keyword
 
 ```javascript
-// We mark the function as 'async' so we are allowed to use 'await' inside it
-async function makeDinner() {
-  console.log("Starting dinner preparation...");
-
-  // JavaScript stops here for 1 second, then assigns the result to rawDough
-  const rawDough = await prepareDough();
-  console.log("Got: " + rawDough);
-
-  // JavaScript stops here for another second, passing rawDough into the next step
-  const flattenedBase = await rollDough(rawDough);
-  console.log("Got: " + flattenedBase);
-
-  // JavaScript stops here for a final second
-  const finalPizza = await bakePizza(flattenedBase);
-  console.log("Dinner is served: " + finalPizza);
+async function greet() {
+    return "Hello";
 }
+```
+Question:
 
-// Call the function
-makeDinner();
+What does this function return?
+
+Many beginners say: `"Hello"`
+
+Wrong.
+
+It `returns a Promise`.
+
+```javascript
+const result = greet();
+
+console.log(result);
 ```
 
-### Why this is a game-changer:
-Look at how clean that is! 
+Output: `Promise { "Hello" }`
 
-There are no nested blocks, no `.then()` brackets, and no complicated data piping. 
+So this:
+```javascript
+async function greet() {
+    return "Hello";
+}
+```
+is roughly equivalent to
+```javascript
+function greet() {
+    return Promise.resolve("Hello");
+}
+```
+The `async` keyword automatically wraps your return value in a Promise.
 
-The variable `rawDough` just waits for `prepareDough()` to finish, grabs the value, and hands it directly to the next line.
+## Step 2: The await keyword
 
-### Error Handling: Back to Basics (try / catch)
+Suppose:
+```javascript
+function login() {
+    return Promise.resolve("Utpal");
+}
+```
+Instead of writing
+```javascript
+login()
+    .then(user => {
+        console.log(user);
+    });
+```
+you can write
+```javascript
+async function main() {
+
+    const user = await login();
+
+    console.log(user);
+
+}
+
+main();
+```
+Output `Utpal`
+
+### What does await actually do?
+
+Imagine login() takes 2 seconds.
+
+`const user = await login();`
+
+looks like it blocks the program.
+
+It doesn't.
+
+It only pauses this async function.
+
+Think of it like this:
+
+```
+main()
+
+↓
+
+login()
+
+↓
+
+Promise returned
+
+↓
+
+main() pauses
+
+↓
+
+Other JavaScript keeps running
+
+↓
+
+Promise resolves
+
+↓
+
+main() resumes
+
+↓
+
+user gets the resolved value
+```
+
+So await means:
+
+"Pause this async function until the Promise resolves."
+
+## Error Handling: Back to Basics (try / catch)
 
 When we used regular promises, we had to use a special `.catch()` block at the bottom.
 
@@ -4694,9 +4920,9 @@ async function makeDinnerSafely() {
 
 ### Memory Summary
 ```
-**Promises (`.then` / `.catch`):** The foundation. You hand over a buzzer and handle the results using function chains.
+Promises (.then/.catch): The foundation. You hand over a buzzer and handle the results using function chains.
 
-**`async`/`await`:** The modern wrapper. It uses the exact same Promises under the hood, but lets you use the await keyword to pause code execution line-by-line until the buzzer goes off.
+async/await: The modern wrapper. It uses the exact same Promises under the hood, but lets you use the await keyword to pause code execution line-by-line until the buzzer goes off.
 ```
 ### Note:
 
@@ -4704,33 +4930,7 @@ If `await` pauses the code line-by-line, doesn't that make it synchronous again?
 
 The secret lies in the difference between The Worker (JavaScript's single thread) and The Tasks (the kitchen background processes).
 
-### The Master Chef Analogy (Blocking vs. Non-Blocking)
 
-Imagine you are the only chef in a restaurant kitchen.
-
-### Scenario A: Synchronous (Blocking)
-
-You put the dough in the oven to bake for 30 minutes. 
-
-Because you are synchronous, you literally stand in front of the oven door, staring at the timer, doing absolutely nothing else. 
-
-The phone is ringing, customers are waiting at the door, but you are frozen until that timer hits zero. This is bad.
-
-### Scenario B: Asynchronous with async/await (Non-Blocking)
-
-You put the dough in the oven and activate your "remote control" (await).
-
-When JavaScript hits that await, the chef doesn't freeze. Instead, the chef walks out of the kitchen entirely to handle other things!
-
-While the oven is baking the pizza in the background:
-
-The chef takes a new order from a customer.
-
-The chef processes a credit card payment.
-
-The chef responds to a user clicking a button on the website.
-
-The moment the oven buzzer goes off (the promise is fulfilled), the chef notes, "Ah, the pizza is ready," returns to the kitchen, and executes the next line of code directly underneath that await.
 
 **What it looks like inside the Browser?**
 
@@ -4853,9 +5053,7 @@ First
 await fetch(...)
 ```
 
-Waits for
-
-the HTTP response.
+Waits for the HTTP response.
 
 Second
 
@@ -4863,13 +5061,7 @@ Second
 await response.json()
 ```
 
-Waits while
-
-JavaScript converts
-
-JSON text
-
-into a JavaScript object.
+Waits while JavaScript converts JSON text into a JavaScript object.
 
 ---
 
@@ -4913,9 +5105,6 @@ async function loadData(){
 }
 ```
 
-You'll write code like this
-
-almost every day.
 
 ---
 
@@ -4937,9 +5126,7 @@ Using
 await
 ```
 
-outside
-
-an async function.
+outside an async function.
 
 ---
 
@@ -4953,13 +5140,7 @@ await
 
 Result
 
-You receive
-
-a Promise
-
-instead of
-
-the actual data.
+You receive a Promise instead of the actual data.
 
 ---
 
@@ -4983,15 +5164,7 @@ or
 
 # Best Practices
 
-✅ Prefer
-
-`async` & `await`
-
-over
-
-`.then()`
-
-for readability.
+✅ Prefer `async` & `await` over `.then()` for readability.
 
 ---
 
@@ -5025,9 +5198,7 @@ setTimeout(() => {
 console.log("End");
 ```
 
-Predict
-
-the output.
+Predict the output.
 
 ---
 
@@ -5059,9 +5230,7 @@ async function demo(){
 demo();
 ```
 
-Observe
-
-the order.
+Observe the order.
 
 ---
 
